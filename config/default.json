@@ -1,0 +1,97 @@
+{
+    "database": {
+        "username": "bk",
+        "password": "bk@1234",
+        "database": "social_network",
+        "host": "34.142.173.56",
+        "dialect": "mysql"
+    },
+    "db_slaves": [
+        {
+            "username": "bk",
+            "password": "bk@1234",
+            "database": "social_network",
+            "host": "34.142.173.56",
+            "dialect": "mysql"
+        }
+    ],
+    "external": {
+        "key": ""
+    },
+    "log_path": "logs",
+    "kafka": {
+        "host": "localhost",
+        "port": 9092
+    },
+    "logQuery": false,
+    "env": "dev",
+    "auth": {
+        "secret_access_token": "",
+        "secret_access_token_expire": 1296000,
+        "secret_refresh_access_token": "",
+        "secret_refresh_access_token_expire": 2592000,
+        "timeline": "2022-10-05 12:34:00",
+        "xid": 2,
+        "set_cookie": true
+    },
+    "clickhouseDb": {
+        "host": "127.0.0.1",
+        "port": 8123,
+        "database": "database"
+    },
+    "memcached": {
+        "max_value": 1048576,
+        "cached_timeout": 3600,
+        "pool_size": 50,
+        "max_key_size": 1024,
+        "timeout": 5000,
+        "max_expriration": 2592000,
+        "host": "34.142.173.56",
+        "port": "11211"
+    },
+    "socket": {
+        "enableServer": false,
+        "connectUrlSocket": "",
+        "ioClientOptions": {}
+    },
+    "session": {
+        "secret": "secret_session"
+    },
+    "mongoDB": {
+        "username": "root",
+        "password": null,
+        "port": "27017",
+        "database": "test",
+        "host": "34.142.173.56",
+        "parameter": "authSource=admin",
+        "uri": false,
+        "mongo_url": null
+    },
+    "redis": {
+        "port": 6379,
+        "host": "34.142.173.56",
+        "username": "",
+        "password": "",
+        "db": 0
+    },
+    "cacheManager": {
+        "driver": "memcached"
+    },
+    "rabbitMqChannel": [
+        "test"
+    ],
+    "rabbitMq": {
+        "host": "amqp://localhost",
+        "port": 5672
+    },
+    "enableSocketServer": true,
+    "mail": {
+        "client_id": "666148972312-chggujnbpqcoqh7ivnlurfritd8lqh3e.apps.googleusercontent.com",
+        "client_secret": "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",
+        "redirect_uri": "https://developers.google.com/oauthplayground",
+        "refresh_token": "1//045qmrmlqJvWLCgYIARAAGAQSNwF-L9Irl95byo07xBIsLprJY9xcnUCkZ6m3lWLYhP8F_HWP48kUxcj8PJfG1B6XD0a0ScyItGc",
+        "user": "dangx4366@gmail.com",
+        "password": "thangyt01",
+        "service": "gmail"
+    }
+}
