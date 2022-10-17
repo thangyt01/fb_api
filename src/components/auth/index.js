@@ -11,6 +11,9 @@ module.exports = (app) => {
     router.post('/register', validate(AuthValidator.register()), AuthController.register)
     router.get('/profile', authenticate, AuthController.getProfile)
     router.post('/refresh-token', authenticate, AuthController.refreshToken)
+    router.get('/health-check', (req, res) => {
+        res.json('server is running!!!')
+    })
     // router.post('/profile', authenticate, profileValidator, updateProfile)
     // router.post('/profile/change-password', authenticate, passwordValidator, changePassword)
     app.use('/api', router)
