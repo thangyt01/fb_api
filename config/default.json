@@ -86,11 +86,11 @@
     },
     "enableSocketServer": true,
     "mail": {
-        "client_id": "666148972312-chggujnbpqcoqh7ivnlurfritd8lqh3e.apps.googleusercontent.com",
-        "client_secret": "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",
+        "client_id": "63386259021-35n3u38dhhnffdjqk6k26rjh691lmqic.apps.googleusercontent.com",
+        "client_secret": "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",
         "redirect_uri": "https://developers.google.com/oauthplayground",
-        "refresh_token": "1//045qmrmlqJvWLCgYIARAAGAQSNwF-L9Irl95byo07xBIsLprJY9xcnUCkZ6m3lWLYhP8F_HWP48kUxcj8PJfG1B6XD0a0ScyItGc",
-        "user": "dangx4366@gmail.com",
+        "refresh_token": "1//04nXim6xurGgjCgYIARAAGAQSNwF-L9IrH2cRdgx_lr_41axUd-08UT3eByWglyusHvr_0J021RWU1z6ZYu424WDfL1xa3EdDWG0",
+        "user": "bkosocialnetwork@gmail.com",
         "password": "thangyt01",
         "service": "gmail"
     }

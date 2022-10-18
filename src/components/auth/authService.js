@@ -2,13 +2,17 @@ import { hashPassword, isValidPassword } from '../../middlewares/auth'
 import { userStatus } from '../user/userConstant'
 import _ from 'lodash'
 import * as randomToken from 'rand-token'
-import { COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE } from './authConstant'
+import { COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
+import { getRandomStringInt } from '../../helpers/utils/utils'
+import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
+import { contentMail } from '../../helpers/message'
 
 const httpStatus = require('http-status')
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
 const moment = require('moment')
+const mailder = require('../../middlewares/sendMail')
 
 const config = require('config')
 const authConfig = _.get(config, 'auth', null)
@@ -214,6 +218,188 @@ export class AuthService {
             }
         } catch (e) {
             log.info('[refreshToken] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async getVerifyCode(params) {
+        try {
+            const { username, type } = params
+            if (!username || !type) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Parameters invalid.'
+                }
+            }
+            const user = await models.User.findOne({
+                attributes: ['id', 'lastname', 'status', 'email'],
+                where: {
+                    username: username,
+                }
+            })
+            if (!user) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'username is not existed.'
+                }
+            }
+
+            const code = getRandomStringInt(5)
+            const mail = contentMail(type, code, user.lastname, user.email)
+            await mailder.sendMail(user.email, mail.subject, mail.content)
+            const key = `${VERIFY_TYPE[type]}_${user.id}`
+            await setMemcached(key, code, 5 * 60 * 1000) // 5phut
+            return {
+                success: true,
+                code: httpStatus.OK,
+            }
+        } catch (e) {
+            log.info('[getVerifyCode] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async verifyCode(params) {
+        try {
+            const { username, otp, type } = params
+            if (!username || !otp || !type) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Parameters invalid.'
+                }
+            }
+            const user = await models.User.findOne({
+                attributes: ['id', 'lastname', 'status', 'email'],
+                where: {
+                    username: username,
+                }
+            })
+            if (!user) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'username is not existed.'
+                }
+            }
+            const otpCache = await getMemcached(`${VERIFY_TYPE[type]}_${user.id}`)
+            if (otpCache != otp) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Mã xác nhận không hợp lệ.'
+                }
+            }
+            if (type == 0) { // active account
+                await models.User.update({
+                    status: userStatus.ACTIVE
+                }, {
+                    where: {
+                        id: user.id
+                    }
+                })
+            }
+            return {
+                success: true,
+                code: httpStatus.OK,
+            }
+        } catch (e) {
+            log.info('[verifyCode] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changePassword(params) {
+        try {
+            const { oldPassword, newPassword, loginUser } = params
+            if (!oldPassword || !newPassword || !loginUser) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Parameters invalid.'
+                }
+            }
+            if (!isValidPassword(loginUser.password, oldPassword)) {
+                // return password not correct
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Mật khẩu cũ không đúng.'
+                }
+            }
+
+            if (isValidPassword(loginUser.password, newPassword)) {
+                // return password not correct
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Mật khẩu mới trùng với mật khẩu cũ.'
+                }
+            }
+
+            //check mật khẩu là sđt
+
+            const hashPass = hashPassword(newPassword)
+            await models.User.update({
+                password: hashPass,
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            });
+
+            return {
+                success: true,
+                code: httpStatus.OK,
+            }
+        } catch (e) {
+            log.info('[changePassword] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changeProfile(params) {
+        try {
+            const { loginUser, ...data } = params
+            if (!loginUser) {
+                return {
+                    error: true,
+                    code: httpStatus.BAD_REQUEST,
+                    message: 'Parameters invalid.'
+                }
+            }
+            await models.User.update({
+                ...data
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            });
+
+            return {
+                success: true,
+                code: httpStatus.OK,
+            }
+        } catch (e) {
+            log.info('[changePassword] có lỗi', e)
             return {
                 error: true,
                 data: [],
