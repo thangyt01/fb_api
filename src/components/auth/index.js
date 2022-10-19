@@ -11,8 +11,14 @@ module.exports = (app) => {
     router.post('/register', validate(AuthValidator.register()), AuthController.register)
     router.get('/profile', authenticate, AuthController.getProfile)
     router.post('/refresh-token', authenticate, AuthController.refreshToken)
-    // router.post('/profile', authenticate, profileValidator, updateProfile)
-    // router.post('/profile/change-password', authenticate, passwordValidator, changePassword)
+    router.get('/health-check', (req, res) => {
+        res.json('server is running!!!')
+    })
+    router.post('/get-verify-code', validate(AuthValidator.getVerifyCode()), AuthController.getVerifyCode)
+    router.post('/verify-code', validate(AuthValidator.verifyCode()), AuthController.verifyCode)
+    router.get('/logout', AuthController.logout)
+    router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
+    router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
     app.use('/api', router)
 }
 
