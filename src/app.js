@@ -14,7 +14,7 @@ require('../database/models')
 // require('../database/mongoDb')
 
 // memcached
-// require('./middlewares/memcached')
+require('./middlewares/memcached')
 
 // redis
 // require('../database/redisDb')

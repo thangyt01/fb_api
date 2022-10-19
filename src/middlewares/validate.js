@@ -10,7 +10,12 @@ module.exports = (schema) => (req, res, next) => {
     const { value, error } = Joi.validate(req.body, schema, { abortEarly: false })
 
     if (error) {
-        const errorMessage = error.details.map((details) => details.message).join(', ')
+        let errorMessage
+        if (error?.details) {
+            errorMessage = error.details.map((details) => details.message).join(', ')
+        } else {
+            errorMessage = error.message
+        }
         res.json(respondWithError(httpStatus.BAD_REQUEST, errorMessage))
         return;
     }
