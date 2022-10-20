@@ -41,7 +41,7 @@ export const HTTP_STATUS = {
     },
     9999: {
         code: 9999,
-        message: 'User existed.',
+        message: 'Exception error',
         note: 'Lỗi exception.'
     },
     1001: {

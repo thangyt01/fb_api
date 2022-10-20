@@ -7,8 +7,8 @@ import { Op } from 'sequelize'
 import { getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
 import { contentMail } from '../../helpers/message'
+import { HTTP_STATUS } from '../../helpers/code'
 
-const httpStatus = require('http-status')
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
 const moment = require('moment')
@@ -24,37 +24,41 @@ export class AuthService {
     static async login(params) {
         try {
             const { username, password } = params
+            let where = {
+                status: userStatus.ACTIVE
+            }
+            if (!isNaN(username)) {
+                where.phone = username
+            } else if (username.toLowerCase()
+                .match(/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/)) {
+                where.email = username
+            } else {
+                where.username = username
+            }
             if (!(username && password)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không được bỏ trống.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
             const user = await models.User.findOne({
-                where: {
-                    [Op.or]: [
-                        {username: username},
-                        {email: username},
-                        {phone: username},
-                    ],
-                    status: userStatus.ACTIVE
-                },
+                where: where,
                 raw: true
             })
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không đúng.'
+                    code: HTTP_STATUS[9995].code,
+                    message: HTTP_STATUS[9995].message
                 }
             }
             if (!isValidPassword(user.password, password)) {
                 // return password not correct
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không đúng.'
+                    code: HTTP_STATUS[9995].code,
+                    message: HTTP_STATUS[9995].message
                 }
             }
 
@@ -75,7 +79,7 @@ export class AuthService {
             })
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: {
                     profile,
                     access_token: token,
@@ -98,8 +102,15 @@ export class AuthService {
             if (!(username && password && email)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu hoặc email không được bỏ trống.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            if (!isNaN(username)) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: 'username phải khác số điện thoại'
                 }
             }
             const user = await models.User.findOne({
@@ -121,7 +132,7 @@ export class AuthService {
             if (user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code:  HTTP_STATUS[9996].code,
                     message: 'Tên đăng nhập hoặc số điện thoại hoặc gmail đã được sử dụng.'
                 }
             }
@@ -133,7 +144,7 @@ export class AuthService {
             });
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
             }
         } catch (e) {
             log.info('[register] có lỗi', e)
@@ -150,13 +161,13 @@ export class AuthService {
             if (!(loginUser || loginUser.id)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[1004].code,
                     message: 'Người dùng chưa đăng nhập vào hệ thống.'
                 }
             }
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: loginUser
             }
         } catch (e) {
@@ -174,7 +185,7 @@ export class AuthService {
             if (!req.cookies || !req.cookies[COOKIE_TOKEN_KEY]) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Invalid token.'
                 }
             }
@@ -183,7 +194,7 @@ export class AuthService {
             if (!refresh_token || !loginUser) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Invalid token.'
                 }
             }
@@ -201,7 +212,7 @@ export class AuthService {
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Token expired.'
                 }
             }
@@ -217,7 +228,7 @@ export class AuthService {
             });
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: {
                     access_token: new_access_token,
                     refresh_token: new_refresh_token
@@ -239,7 +250,7 @@ export class AuthService {
             if (!username || !type) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[1004].code,
                     message: 'Parameters invalid.'
                 }
             }
@@ -252,7 +263,7 @@ export class AuthService {
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9995].code,
                     message: 'username is not existed.'
                 }
             }
@@ -264,7 +275,7 @@ export class AuthService {
             await setMemcached(key, code, 5 * 60 * 1000) // 5phut
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
             }
         } catch (e) {
             log.info('[getVerifyCode] có lỗi', e)
@@ -282,7 +293,7 @@ export class AuthService {
             if (!username || !otp || !type) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[1004].code,
                     message: 'Parameters invalid.'
                 }
             }
@@ -295,7 +306,7 @@ export class AuthService {
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9995].code,
                     message: 'username is not existed.'
                 }
             }
@@ -303,8 +314,8 @@ export class AuthService {
             if (otpCache != otp) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Mã xác nhận không hợp lệ.'
+                    code: HTTP_STATUS[9993].code,
+                    message: HTTP_STATUS[9993].message
                 }
             }
             if (type == 0) { // active account
@@ -318,7 +329,7 @@ export class AuthService {
             }
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
             }
         } catch (e) {
             log.info('[verifyCode] có lỗi', e)
@@ -336,16 +347,16 @@ export class AuthService {
             if (!oldPassword || !newPassword || !loginUser) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Parameters invalid.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
             if (!isValidPassword(loginUser.password, oldPassword)) {
                 // return password not correct
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Mật khẩu cũ không đúng.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
 
@@ -353,8 +364,8 @@ export class AuthService {
                 // return password not correct
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Mật khẩu mới trùng với mật khẩu cũ.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
 
@@ -371,7 +382,7 @@ export class AuthService {
 
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code
             }
         } catch (e) {
             log.info('[changePassword] có lỗi', e)
@@ -389,8 +400,8 @@ export class AuthService {
             if (!loginUser) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Parameters invalid.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
             await models.User.update({
@@ -403,7 +414,7 @@ export class AuthService {
 
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
             }
         } catch (e) {
             log.info('[changePassword] có lỗi', e)

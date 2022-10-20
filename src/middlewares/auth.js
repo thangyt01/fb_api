@@ -2,10 +2,10 @@ import _ from 'lodash'
 import { userStatus } from '../components/user/userConstant'
 import { respondWithError } from '../helpers/messageResponse'
 import { COOKIE_TOKEN_KEY } from '../components/auth/authConstant'
+import { HTTP_STATUS } from '../helpers/code'
 
 const jwt = require('jsonwebtoken')
 const models = require('../../database/models')
-const httpStatus = require('http-status')
 
 const {
     SECRET_ACCESS_TOKEN,
@@ -90,16 +90,16 @@ export async function authenticate(req, res, next) {
                 }, [])
                 next()
             } else {
-                res.json(respondWithError(httpStatus.FORBIDDEN, 'Unauthorized'))
+                res.json(respondWithError(HTTP_STATUS[1009].code, 'Unauthorized'))
             }
         } else {
-            res.json(respondWithError(httpStatus.FORBIDDEN, 'Token Expired'))
+            res.json(respondWithError(HTTP_STATUS[9998].code, 'Token Expired'))
         }
     } catch (e) {
         if (_.get(e, 'name', '') === 'TokenExpiredError') {
-            res.json(respondWithError(httpStatus.FORBIDDEN, 'Token Expired'))
+            res.json(respondWithError(HTTP_STATUS[9998].code, 'Token Expired'))
             return
         }
-        res.json(respondWithError(httpStatus.UNAUTHORIZED, 'Unauthorized'))
+        res.json(respondWithError((HTTP_STATUS[1009].code, 'Unauthorized')))
     }
 }

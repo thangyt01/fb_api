@@ -17,10 +17,10 @@ export class AuthValidator {
 
     static register() {
         return Joi.object().keys({
-            username: Joi.string().min(4).max(20).required(),
-            lastname: Joi.string().max(20).required(),
-            firstname: Joi.string().max(20).required(),
-            password: Joi.string().required(),
+            username: Joi.string().regex(/^[a-z0-9_-]{4,20}$/).required(),
+            lastname: Joi.string().max(20).alphanum().required(),
+            firstname: Joi.string().max(20).alphanum().required(),
+            password: Joi.string().min(5).required(),
             email: Joi.string().email().required(),
             phone: Joi.string().regex(/^[0-9]{10}$/).optional(),
             avatar_id: Joi.number().integer().allow(null).optional(),
@@ -56,8 +56,8 @@ export class AuthValidator {
 
     static changeProfile() {
         return Joi.object().keys({
-            lastname: Joi.string().max(20).allow(null),
-            firstname: Joi.string().max(20).allow(null),
+            lastname: Joi.string().max(20).alphanum().allow(null),
+            firstname: Joi.string().max(20).alphanum().allow(null),
             gender: Joi.string().valid(['male', 'female', 'other']).allow(null),
             birthday: Joi.date().format('YYYY-MM-DD')
                 .max(moment().subtract(15, 'years').format('YYYY-MM-DD'))
