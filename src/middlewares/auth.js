@@ -21,7 +21,7 @@ export function isValidPassword(userpass, password) {
     return bCrypt.compareSync(password, userpass)
 }
 export function hashPassword(password) {
-    return bCrypt.hashSync(password, bCrypt.genSaltSync(8), null)
+    return bCrypt.hashSync(password, 8)
 }
 
 export function extractToken(req) {

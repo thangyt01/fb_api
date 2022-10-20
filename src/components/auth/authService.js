@@ -132,7 +132,7 @@ export class AuthService {
             if (user) {
                 return {
                     error: true,
-                    code:  HTTP_STATUS[9996].code,
+                    code: HTTP_STATUS[9996].code,
                     message: 'Tên đăng nhập hoặc số điện thoại hoặc gmail đã được sử dụng.'
                 }
             }
