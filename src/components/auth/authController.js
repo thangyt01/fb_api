@@ -1,8 +1,8 @@
+import { HTTP_STATUS } from "../../helpers/code";
 import { respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
 import { COOKIE_TOKEN_KEY } from "./authConstant";
 import { AuthService, setCookie } from "./authService";
 
-const httpStatus = require('http-status')
 const config = require('config')
 const authConfig = config.get('auth')
 const moment = require('moment')
@@ -25,7 +25,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -40,7 +40,7 @@ export class AuthController {
                 phone: req.body ? req.body.phone : null,
                 avatar_id: req.body ? req.body.avatar_id : null,
                 gender: req.body ? req.body.gender : null,
-                birthday: req.body ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
+                birthday: req.body?.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
             }
             const result = await AuthService.register(params)
             if (result.success) {
@@ -49,7 +49,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -62,7 +62,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -79,7 +79,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -96,7 +96,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -114,7 +114,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -123,7 +123,7 @@ export class AuthController {
             res.clearCookie(COOKIE_TOKEN_KEY)
             res.json(respondItemSuccess())
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -141,7 +141,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -161,7 +161,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 }
