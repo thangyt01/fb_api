@@ -33,7 +33,11 @@ export class AuthService {
             }
             const user = await models.User.findOne({
                 where: {
-                    username: username,
+                    [Op.or]: [
+                        {username: username},
+                        {email: username},
+                        {phone: username},
+                    ],
                     status: userStatus.ACTIVE
                 },
                 raw: true
@@ -90,12 +94,12 @@ export class AuthService {
 
     static async register(params) {
         try {
-            const { username, password, phone } = params
-            if (!(username && password)) {
+            const { username, password, email, phone } = params
+            if (!(username && password && email)) {
                 return {
                     error: true,
                     code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không được bỏ trống.'
+                    message: 'Tên đăng nhập hoặc mật khẩu hoặc email không được bỏ trống.'
                 }
             }
             const user = await models.User.findOne({
@@ -104,9 +108,12 @@ export class AuthService {
                         {
                             username: username,
                         },
-                        // {
-                        //     phone: phone
-                        // }
+                        {
+                            phone: phone
+                        },
+                        {
+                            email: email
+                        }
                     ],
                     status: userStatus.ACTIVE
                 }
@@ -115,7 +122,7 @@ export class AuthService {
                 return {
                     error: true,
                     code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc số điện thoại đã được sử dụng.'
+                    message: 'Tên đăng nhập hoặc số điện thoại hoặc gmail đã được sử dụng.'
                 }
             }
             const hashPass = hashPassword(password)

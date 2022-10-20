@@ -40,7 +40,7 @@ export class AuthController {
                 phone: req.body ? req.body.phone : null,
                 avatar_id: req.body ? req.body.avatar_id : null,
                 gender: req.body ? req.body.gender : null,
-                birthday: req.body ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
+                birthday: req.body.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
             }
             const result = await AuthService.register(params)
             if (result.success) {
