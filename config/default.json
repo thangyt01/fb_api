@@ -58,13 +58,13 @@
         "secret": "secret_session"
     },
     "mongoDB": {
-        "username": "root",
-        "password": null,
-        "port": "27017",
-        "database": "test",
+        "username": "bks",
+        "password": "bk1234",
+        "port": "20007",
+        "database": "bk_social_network",
         "host": "34.142.173.56",
-        "parameter": "authSource=admin",
-        "uri": false,
+        "parameter": "",
+        "uri": null,
         "mongo_url": null
     },
     "redis": {

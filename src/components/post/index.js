@@ -1,0 +1,19 @@
+const express = require('express')
+const { authenticate } = require('../../middlewares/auth')
+const validate = require('../../middlewares/validate')
+const { PostController } = require('./postController')
+const { PostValidator } = require('./postValidator')
+
+module.exports = (app) => {
+    const router = express.Router()
+
+    // tạo bài đăng
+    router.post('/', authenticate, validate(PostValidator.create()), PostController.create)
+
+    // sửa bài đăng
+    router.put('/:id', authenticate, validate(PostValidator.create()), PostController.create)
+
+    router.delete('/:id', authenticate, validate(PostValidator.create()), PostController.create)
+
+    app.use('/api/post', router)
+}
