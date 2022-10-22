@@ -13,7 +13,7 @@ module.exports = (app) => {
     // sửa bài đăng
     router.put('/:id', authenticate, validate(PostValidator.edit()), PostController.edit)
 
-    router.delete('/:id', authenticate, validate(PostValidator.create()), PostController.create)
+    router.delete('/:id', authenticate, PostController.delete)
 
     app.use('/api/post', router)
 }

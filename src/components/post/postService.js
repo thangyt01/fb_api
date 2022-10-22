@@ -79,7 +79,53 @@ export class PostService {
                 message: HTTP_STATUS[1000].message
             }
         } catch (e) {
-            log.info('[create] có lỗi', e)
+            log.info('[edit] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async delete(params) {
+        try {
+            const { post_id, loginUser } = params
+            if (!post_id || !mongoose.Types.ObjectId.isValid(post_id)) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9992].code,
+                    message: HTTP_STATUS[9992].message
+                }
+            }
+            const post = await Post.findById(post_id).exec()
+            if (!post_id) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9992].code,
+                    message: HTTP_STATUS[9992].message
+                }
+            }
+            if (post.created_by.user_id != loginUser.id) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1009].code,
+                    message: HTTP_STATUS[1009].message
+                }
+            }
+            const data = {
+                deleted_at: moment().format('YYYY-MM-DD HH:mm:ss'),
+            }
+            //xóa mềm
+            await Post.findByIdAndUpdate(post_id, data)
+
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message
+            }
+        } catch (e) {
+            log.info('[delete] có lỗi', e)
             return {
                 error: true,
                 data: [],
