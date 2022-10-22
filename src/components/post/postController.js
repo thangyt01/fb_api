@@ -31,7 +31,7 @@ export class PostController {
                 modified_level: req.body ? req.body.modified_level : null,
                 loginUser: req.loginUser
             }
-            const result = await PostService.create(params)
+            const result = await PostService.edit(params)
             if (result.success) {
                 res.json(respondItemSuccess(result.data))
             } else {

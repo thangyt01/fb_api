@@ -23,6 +23,7 @@ const schema = new mongoose.Schema({
     ],
     reply_id: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
     parent_id: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+    is_edit: { type: Number, default: null },
     created_at: { type: String, default: moment().format('YYYY-MM-DD HH:mm:ss') },
     updated_at: { type: String, default: null },
     deleted_at: { type: String, default: null },

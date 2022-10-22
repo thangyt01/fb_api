@@ -58,6 +58,7 @@ const schema = new mongoose.Schema({
     ],
     number_comment: { type: Number, required: true, default: 0 },
     number_share: { type: Number, required: true, default: 0 },
+    is_edit: { type: Number, default: null },
     created_at: { type: String, default: moment().format('YYYY-MM-DD HH:mm:ss') },
     updated_at: { type: String, default: null },
     deleted_at: { type: String, default: null },
