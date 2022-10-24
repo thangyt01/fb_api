@@ -11,7 +11,7 @@ winstonLoader()
 require('../database/models')
 
 // mongodb
-// require('../database/mongoDb')
+require('../database/mongoDb')
 
 // memcached
 require('./middlewares/memcached')

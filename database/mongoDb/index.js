@@ -1,27 +1,24 @@
-let mongoose = require("mongoose");
-let config = require('config');
-let _ = require('lodash');
+const mongoose = require("mongoose")
+const config = require('config')
+const _ = require('lodash')
+const Logger = require('../../src/libs/logger')
+const log = new Logger()
 
-let username = _.get(config, 'mongoDB.username', 'root');
-let password = _.get(config, 'mongoDB.password', 'password');
-let host = _.get(config, 'mongoDB.host', 'localhost');
-let port = _.get(config, 'mongoDB.port', 27017);
-let database = _.get(config, 'mongoDB.database', 'database');
-let parameter = _.get(config, 'mongoDB.parameter', 'authSource=admin');
+const username = _.get(config, 'mongoDB.username', 'root')
+const password = _.get(config, 'mongoDB.password', 'password')
+const host = _.get(config, 'mongoDB.host', 'localhost')
+const port = _.get(config, 'mongoDB.port', 27017)
+const database = _.get(config, 'mongoDB.database', 'database')
+const parameter = _.get(config, 'mongoDB.parameter', 'authSource=admin')
+const baseUri = _.get(config, 'mongoDB.uri', null)
+
 // get Uri from config if exist
-
-let uri;
-let baseUri = _.get(config, 'mongoDB.uri', null);
-if (baseUri) {
-    uri = baseUri;
-} else {
-    uri = `mongodb://${username}:${password}@${host}:${port}/${database}?${parameter}`;
-}
+let uri = baseUri || `mongodb://${username}:${password}@${host}:${port}/${database}?${parameter}`
 
 const connectMongo = async () => {
-    await mongoose.connect(uri)
-        .then(() => console.log(`========== mongoDB connected  uri: ${uri} ...`))
-        .catch(e => console.log(`========== error connect MongoDB ${e}`));
+    await mongoose.connect(uri, { useCreateIndex: true, useFindAndModify: false })
+        .then(() => log.info(`MongoDB connected uri: ${uri} ...`))
+        .catch(e => log.error(`Error connect MongoDB ${e}`))
 }
 
-connectMongo();
+connectMongo()

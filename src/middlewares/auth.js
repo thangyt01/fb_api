@@ -3,6 +3,7 @@ import { userStatus } from '../components/user/userConstant'
 import { respondWithError } from '../helpers/messageResponse'
 import { COOKIE_TOKEN_KEY } from '../components/auth/authConstant'
 import { HTTP_STATUS } from '../helpers/code'
+import { getAvatarUrl } from '../components/user/userService'
 
 const jwt = require('jsonwebtoken')
 const models = require('../../database/models')
@@ -74,7 +75,7 @@ export async function authenticate(req, res, next) {
                     ]
                 }
             ],
-            attributes: ['id', 'username', 'email', 'password', 'firstname', 'lastname', 'birthday',
+            attributes: ['id', 'username', 'email', 'password', 'firstname', 'lastname', 'birthday', 'avatar_id',
                 'gender', 'phone', 'status', 'last_login_at', 'created_at', 'updated_at'],
             where: {
                 id: id
@@ -83,6 +84,7 @@ export async function authenticate(req, res, next) {
         if (user) {
             if (user.status === userStatus.ACTIVE) {
                 req.loginUser = user
+                req.loginUser.avatar_url = await getAvatarUrl(user.avatar_id)
                 req.loginUser.token = token
                 req.permissions = _.get(user, 'role', []).reduce((list, role) => {
                     const permissions = _.get(role, 'permissions', []).map(p => (`${_.get(p, 'model')}_${_.get(p, 'action')}`))
