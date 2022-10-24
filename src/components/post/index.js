@@ -10,6 +10,8 @@ module.exports = (app) => {
     // tạo bài đăng
     router.post('/', authenticate, validate(PostValidator.create()), PostController.create)
 
+    router.get('/:id', authenticate, PostController.get)
+
     // sửa bài đăng
     router.put('/:id', authenticate, validate(PostValidator.edit()), PostController.edit)
 

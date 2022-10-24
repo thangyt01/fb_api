@@ -16,7 +16,7 @@ const baseUri = _.get(config, 'mongoDB.uri', null)
 let uri = baseUri || `mongodb://${username}:${password}@${host}:${port}/${database}?${parameter}`
 
 const connectMongo = async () => {
-    await mongoose.connect(uri)
+    await mongoose.connect(uri, { useCreateIndex: true, useFindAndModify: false })
         .then(() => log.info(`MongoDB connected uri: ${uri} ...`))
         .catch(e => log.error(`Error connect MongoDB ${e}`))
 }

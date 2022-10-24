@@ -5,6 +5,10 @@ module.exports = (bks) => {
     bks.use(authentication).on('connection', async (socket) => {
         try {
             const { loginUser = {} } = socket
+
+            /*****************************************
+             *********** DEFINE ROOM EVENTS **********
+             *****************************************/
             socket.on('join-room', () => {
                 const params = {
                     loginUser,
@@ -23,6 +27,9 @@ module.exports = (bks) => {
                 BksService.leaveRoom(params)
             })
 
+            /*****************************************
+             *********** DEFINE POST EVENTS **********
+             *****************************************/
             socket.on('server-new-post', (data) => {
                 const params = {
                     data,
