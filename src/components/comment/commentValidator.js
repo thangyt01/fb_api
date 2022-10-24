@@ -14,7 +14,6 @@ export class CommentValidator {
                 type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).allow(null)
             }).allow(null),
             reply_id: Joi.string().allow(null),
-            parent_id: Joi.string().allow(null)
         })
     }
 
@@ -25,7 +24,6 @@ export class CommentValidator {
                 url: Joi.string().required(),
                 type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).allow(null)
             })).allow(null),
-            modified_level: Joi.string().valid(Object.values(MODIFIED_LEVEL)).allow(null),
         })
     }
 }

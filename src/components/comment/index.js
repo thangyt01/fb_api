@@ -10,10 +10,9 @@ module.exports = (app) => {
     router.get('/:postId', authenticate, CommentController.get)
     router.post('/:postId', authenticate, validate(CommentValidator.create()), CommentController.create)
 
-    // // sửa bài đăng
-    // router.put('/:id', authenticate, validate(PostValidator.edit()), PostController.edit)
-
-    // router.delete('/:id', authenticate, PostController.delete)
+    // sửa bình luận
+    router.put('/:commentId', authenticate, validate(CommentValidator.edit()), CommentController.edit)
+    router.delete('/:commentId', authenticate, CommentController.delete)
 
     app.use('/api/comment', router)
 }

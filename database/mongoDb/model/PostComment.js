@@ -50,8 +50,8 @@ const schema = new mongoose.Schema({
             type: numberEmotionSchema,
         }
     ],
-    reply_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PostComment', index: true },
-    parent_id: { type: mongoose.Schema.Types.ObjectId, ref: 'PostComment', index: true },
+    reply_id: { type: mongoose.Schema.Types.ObjectId, default: null, ref: 'PostComment', index: true },
+    // parent_id: { type: mongoose.Schema.Types.ObjectId, default: null, ref: 'PostComment', index: true },
     is_edit: { type: Number, default: null },
     created_at: { type: String, default: moment().format('YYYY-MM-DD HH:mm:ss') },
     updated_at: { type: String, default: null },
