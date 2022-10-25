@@ -19,6 +19,8 @@ module.exports = (app) => {
     router.get('/logout', AuthController.logout)
     router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
     router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
+    router.post('/profile/change-avatar', authenticate, validate(AuthValidator.changeAvatar()), AuthController.changePassword)
+
     app.use('/api', router)
 }
 
@@ -33,7 +35,7 @@ module.exports = (app) => {
  * @swagger
  * /login:
  *   post:
- *     summary: Login
+ *     summary: Đăng nhập
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -51,23 +53,182 @@ module.exports = (app) => {
  *               password:
  *                 type: string
  *                 format: password
- *                 minLength: 6
+ *                 minLength: 5
  *                 description: At least one number and one letter
  *             example:
  *               username: admin
  *               password: admin
  *     responses:
- *       "201":
+ *       "1000":
  *         description: Login successfully!
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 profile:
- *                   $ref: '#/components/schemas/User'
- *                 access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0aGFuZ3l0MDBAZ21haWwuY29tIiwiaWF0IjoxNjY1NDU3NTAyLCJleHAiOjE2NjY3NTM1MDJ9.JURaM56dpbHWU8_WSU-lkd8YmDs-UNqQv9stgZyB15Y
- *                 refresh_token: sDv94PcxcgNf36fz
- *       "400":
- *         $ref: '#/components/responses/DuplicateEmail'
+ */
+
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Đăng ký
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               username: bks2022
+ *               password: bks2022
+ *               email: bks2022@gmail.com
+ *               firstname: bach
+ *               lastname: khoa
+ *               phone: "0372010912"
+ *               gender: male
+ *               birthday: 2001-01-01
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Chi tiết profile
+ *     tags: [Auth]
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /refresh-token:
+ *   post:
+ *     summary: Refresh token
+ *     tags: [Auth]
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /health-check:
+ *   get:
+ *     summary: Health check server
+ *     tags: [Auth]
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /get-verify-code:
+ *   post:
+ *     summary: Lấy mã xác thực, type "0" là kích hoạt tài khoản, "1" là quên mật khẩu
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               username: admin
+ *               type: "0"
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /verify-code:
+ *   post:
+ *     summary: Verify mã xác thực
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             example:
+ *               username: admin
+ *               type: "0"
+ *               otp: 74161
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Đăng xuất
+ *     tags: [Auth]
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /profile:
+ *   post:
+ *     summary: Thay đổi thông tin cá nhân
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               firstname: Đặng Xuân
+ *               lastname: Thắng
+ *               gender: male
+ *               birthday: 2001-01-01
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /profile/change-password:
+ *   post:
+ *     summary: Đổi mật khẩu
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               old_password: bks2022
+ *               new_password: bks2023
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /profile/change-avatar:
+ *   post:
+ *     summary: Đổi ảnh đại diện
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               avatar_id: 63536d2fde80401beccdb42f
+ *     responses:
+ *       "1000":
+ *         description: ok!
  */

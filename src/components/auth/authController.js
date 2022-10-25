@@ -164,4 +164,21 @@ export class AuthController {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
+
+    static async changeAvatar(req, res) {
+        try {
+            const params = {
+                avatarId: req.body ? req.body.avatar_id : null,
+                loginUser: req.loginUser || null
+            }
+            const result = await AuthService.changeAvatar(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
 }

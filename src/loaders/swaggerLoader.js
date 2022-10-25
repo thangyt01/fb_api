@@ -27,7 +27,7 @@ module.exports = (app) => {
                 },
             ],
         },
-        apis: ['src/docs/*.yml', 'src/components/*/index.js'],
+        apis: ['src/components/*/index.js'],
     }
 
     if (env.isDevelopment) {
