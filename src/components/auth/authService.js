@@ -8,6 +8,8 @@ import { getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
 import { contentMail } from '../../helpers/message'
 import { HTTP_STATUS } from '../../helpers/code'
+import PostComment from '../../../database/mongoDb/model/PostComment'
+import Post from '../../../database/mongoDb/model/Post'
 
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
@@ -141,7 +143,7 @@ export class AuthService {
                 ...params,
                 password: hashPass,
                 created_at: new Date(),
-            });
+            })
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
@@ -165,6 +167,7 @@ export class AuthService {
                     message: 'Người dùng chưa đăng nhập vào hệ thống.'
                 }
             }
+            delete loginUser.dataValues.password
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
@@ -225,7 +228,7 @@ export class AuthService {
                 where: {
                     id: user.id,
                 },
-            });
+            })
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
@@ -378,7 +381,7 @@ export class AuthService {
                 where: {
                     id: loginUser.id
                 }
-            });
+            })
 
             return {
                 success: true,
@@ -410,7 +413,15 @@ export class AuthService {
                 where: {
                     id: loginUser.id
                 }
-            });
+            })
+            // update info user - comment - post
+            if (data.firstname || data.lastname) {
+                const set = {}
+                const user = await models.User.findByPk(loginUser.id)
+                set.full_name = user.firstname + ' ' + user.lastname
+                updateInfoUserModel(Post, loginUser.id, set)
+                updateInfoUserModel(PostComment, loginUser.id, set)
+            }
 
             return {
                 success: true,
@@ -418,6 +429,41 @@ export class AuthService {
             }
         } catch (e) {
             log.info('[changePassword] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changeAvatar(params) {
+        try {
+            const { avatar_id, loginUser } = params
+            if (!avatar_id || !loginUser) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            await models.User.update({
+                avatar_id: avatar_id,
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            })
+
+            const avatar_url = await getAvatarUrl(avatar_id)
+            updateInfoUserModel(Post, loginUser.id, { avatar_url })
+            updateInfoUserModel(PostComment, loginUser.id, { avatar_url })
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code
+            }
+        } catch (e) {
+            log.info('[changeAvatar] có lỗi', e)
             return {
                 error: true,
                 data: [],
@@ -453,4 +499,33 @@ function signToken(flag, payload, condition = {}) {
 
 export function setCookie(res, key, value) {
     res.cookie(key, value, { httpOnly: true })
+}
+
+async function updateInfoUserModel(model, user_id, set) {
+    try {
+        const set1 = {}, set2 = {}
+        if (set.full_name) {
+            set1['created_by.full_name'] = set.full_name
+            set2['emotions.$.full_name'] = set.full_name
+        }
+        if (set.avatar_url) {
+            set1['created_by.avatar_url'] = set.avatar_url
+            set2['emotions.$.avatar_url'] = set.avatar_url
+        }
+
+        //update created_by field
+        await model.updateMany({
+            'created_by.user_id': user_id
+        }, {
+            $set: set1
+        })
+        //update emotions field
+        await model.updateMany({
+            'emotions.user_id': user_id
+        }, {
+            $set: set2
+        })
+    } catch (error) {
+        throw error
+    }
 }
