@@ -3,7 +3,7 @@
         "username": "bk",
         "password": "bk@1234",
         "database": "social_network",
-        "host": "34.142.173.56",
+        "host": "34.87.2.38",
         "dialect": "mysql"
     },
     "db_slaves": [
@@ -11,7 +11,7 @@
             "username": "bk",
             "password": "bk@1234",
             "database": "social_network",
-            "host": "34.142.173.56",
+            "host": "34.87.2.38",
             "dialect": "mysql"
         }
     ],
@@ -46,7 +46,7 @@
         "max_key_size": 1024,
         "timeout": 5000,
         "max_expriration": 2592000,
-        "host": "34.142.173.56",
+        "host": "34.87.2.38",
         "port": "11211"
     },
     "socket": {
@@ -62,14 +62,14 @@
         "password": null,
         "port": "27017",
         "database": "test",
-        "host": "34.142.173.56",
+        "host": "34.87.2.38",
         "parameter": "authSource=admin",
         "uri": false,
         "mongo_url": null
     },
     "redis": {
         "port": 6379,
-        "host": "34.142.173.56",
+        "host": "34.87.2.38",
         "username": "",
         "password": "",
         "db": 0
