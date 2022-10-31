@@ -3,7 +3,6 @@ import mongoose from 'mongoose'
 import PostComment from '../../../database/mongoDb/model/PostComment'
 import { HTTP_STATUS } from '../../helpers/code'
 import { removeRedundant } from '../../helpers/utils/utils'
-import { CommentService } from '../comment/commentService'
 import { MODIFIED_LEVEL } from './postConstant'
 
 const Post = require('../../../database/mongoDb/model/Post')
