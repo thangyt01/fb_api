@@ -1,5 +1,6 @@
+import { HTTP_STATUS } from '../helpers/code'
+
 const _ = require('lodash')
-const httpStatus = require('http-status')
 
 const Logger = require('../libs/logger')
 const { respondWithError } = require('../helpers/messageResponse')
@@ -28,10 +29,10 @@ export async function authorize(req, res, next) {
         } else {
             console.log('unauthorize....')
             log.info('authorize authorize unauthorize: ' + JSON.stringify(apiRole) + ', ' + JSON.stringify(permissions))
-            res.json(respondWithError(httpStatus.FORBIDDEN, 'Forbidden'))
+            res.json(respondWithError((HTTP_STATUS[1009].code, 'Forbidden')))
             return
         }
     } catch (e) {
-        res.json(respondWithError(httpStatus.FORBIDDEN, 'Forbidden'))
+        res.json(respondWithError((HTTP_STATUS[1009].code, 'Forbidden')))
     }
 }

@@ -1,10 +1,11 @@
+import { HTTP_STATUS } from "../../helpers/code";
 import { respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
 import { COOKIE_TOKEN_KEY } from "./authConstant";
 import { AuthService, setCookie } from "./authService";
 
-const httpStatus = require('http-status')
 const config = require('config')
 const authConfig = config.get('auth')
+const moment = require('moment')
 
 export class AuthController {
     static async login(req, res) {
@@ -24,7 +25,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -38,6 +39,8 @@ export class AuthController {
                 email: req.body ? req.body.email : null,
                 phone: req.body ? req.body.phone : null,
                 avatar_id: req.body ? req.body.avatar_id : null,
+                gender: req.body ? req.body.gender : null,
+                birthday: req.body?.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
             }
             const result = await AuthService.register(params)
             if (result.success) {
@@ -46,7 +49,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -59,7 +62,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 
@@ -76,7 +79,106 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
-            res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, error.message, error))
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async getVerifyCode(req, res) {
+        try {
+            const params = {
+                username: req.body ? req.body.username : null,
+                type: req.body ? req.body.type : null
+            }
+            const result = await AuthService.getVerifyCode(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async verifyCode(req, res) {
+        try {
+            const params = {
+                username: req.body ? req.body.username : null,
+                type: req.body ? req.body.type : null,
+                otp: req.body ? req.body.otp : null
+            }
+            const result = await AuthService.verifyCode(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async logout(req, res) {
+        try {
+            res.clearCookie(COOKIE_TOKEN_KEY)
+            res.json(respondItemSuccess())
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async changePassword(req, res) {
+        try {
+            const params = {
+                oldPassword: req.body ? req.body.old_password : null,
+                newPassword: req.body ? req.body.new_password : null,
+                loginUser: req.loginUser || null
+            }
+            const result = await AuthService.changePassword(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async changeProfile(req, res) {
+        try {
+            const params = {
+                lastname: req.body ? req.body.lastname : null,
+                firstname: req.body ? req.body.firstname : null,
+                gender: req.body ? req.body.gender : null,
+                birthday: req.body && req.body.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null,
+                loginUser: req.loginUser || null
+            }
+            const result = await AuthService.changeProfile(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async changeAvatar(req, res) {
+        try {
+            const params = {
+                avatarId: req.body ? req.body.avatar_id : null,
+                loginUser: req.loginUser || null
+            }
+            const result = await AuthService.changeAvatar(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
 }

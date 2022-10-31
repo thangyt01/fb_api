@@ -2,13 +2,19 @@ import { hashPassword, isValidPassword } from '../../middlewares/auth'
 import { userStatus } from '../user/userConstant'
 import _ from 'lodash'
 import * as randomToken from 'rand-token'
-import { COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE } from './authConstant'
+import { COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
+import { getRandomStringInt } from '../../helpers/utils/utils'
+import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
+import { contentMail } from '../../helpers/message'
+import { HTTP_STATUS } from '../../helpers/code'
+import PostComment from '../../../database/mongoDb/model/PostComment'
+import Post from '../../../database/mongoDb/model/Post'
 
-const httpStatus = require('http-status')
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
 const moment = require('moment')
+const mailder = require('../../middlewares/sendMail')
 
 const config = require('config')
 const authConfig = _.get(config, 'auth', null)
@@ -20,33 +26,41 @@ export class AuthService {
     static async login(params) {
         try {
             const { username, password } = params
+            let where = {
+                status: userStatus.ACTIVE
+            }
+            if (!isNaN(username)) {
+                where.phone = username
+            } else if (username.toLowerCase()
+                .match(/[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/)) {
+                where.email = username
+            } else {
+                where.username = username
+            }
             if (!(username && password)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không được bỏ trống.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
                 }
             }
             const user = await models.User.findOne({
-                where: {
-                    username: username,
-                    status: userStatus.ACTIVE
-                },
+                where: where,
                 raw: true
             })
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không đúng.'
+                    code: HTTP_STATUS[9995].code,
+                    message: HTTP_STATUS[9995].message
                 }
             }
             if (!isValidPassword(user.password, password)) {
                 // return password not correct
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không đúng.'
+                    code: HTTP_STATUS[9995].code,
+                    message: HTTP_STATUS[9995].message
                 }
             }
 
@@ -67,7 +81,7 @@ export class AuthService {
             })
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: {
                     profile,
                     access_token: token,
@@ -86,12 +100,19 @@ export class AuthService {
 
     static async register(params) {
         try {
-            const { username, password, phone } = params
-            if (!(username && password)) {
+            const { username, password, email, phone } = params
+            if (!(username && password && email)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc mật khẩu không được bỏ trống.'
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            if (!isNaN(username)) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: 'username phải khác số điện thoại'
                 }
             }
             const user = await models.User.findOne({
@@ -100,9 +121,12 @@ export class AuthService {
                         {
                             username: username,
                         },
-                        // {
-                        //     phone: phone
-                        // }
+                        {
+                            phone: phone
+                        },
+                        {
+                            email: email
+                        }
                     ],
                     status: userStatus.ACTIVE
                 }
@@ -110,8 +134,8 @@ export class AuthService {
             if (user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
-                    message: 'Tên đăng nhập hoặc số điện thoại đã được sử dụng.'
+                    code: HTTP_STATUS[9996].code,
+                    message: 'Tên đăng nhập hoặc số điện thoại hoặc gmail đã được sử dụng.'
                 }
             }
             const hashPass = hashPassword(password)
@@ -119,10 +143,10 @@ export class AuthService {
                 ...params,
                 password: hashPass,
                 created_at: new Date(),
-            });
+            })
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
             }
         } catch (e) {
             log.info('[register] có lỗi', e)
@@ -139,13 +163,14 @@ export class AuthService {
             if (!(loginUser || loginUser.id)) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[1004].code,
                     message: 'Người dùng chưa đăng nhập vào hệ thống.'
                 }
             }
+            delete loginUser.dataValues.password
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: loginUser
             }
         } catch (e) {
@@ -163,7 +188,7 @@ export class AuthService {
             if (!req.cookies || !req.cookies[COOKIE_TOKEN_KEY]) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Invalid token.'
                 }
             }
@@ -172,7 +197,7 @@ export class AuthService {
             if (!refresh_token || !loginUser) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Invalid token.'
                 }
             }
@@ -190,7 +215,7 @@ export class AuthService {
             if (!user) {
                 return {
                     error: true,
-                    code: httpStatus.BAD_REQUEST,
+                    code: HTTP_STATUS[9998].code,
                     message: 'Token expired.'
                 }
             }
@@ -203,10 +228,10 @@ export class AuthService {
                 where: {
                     id: user.id,
                 },
-            });
+            })
             return {
                 success: true,
-                code: httpStatus.OK,
+                code: HTTP_STATUS[1000].code,
                 data: {
                     access_token: new_access_token,
                     refresh_token: new_refresh_token
@@ -214,6 +239,231 @@ export class AuthService {
             }
         } catch (e) {
             log.info('[refreshToken] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async getVerifyCode(params) {
+        try {
+            const { username, type } = params
+            if (!username || !type) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: 'Parameters invalid.'
+                }
+            }
+            const user = await models.User.findOne({
+                attributes: ['id', 'lastname', 'status', 'email'],
+                where: {
+                    username: username,
+                }
+            })
+            if (!user) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9995].code,
+                    message: 'username is not existed.'
+                }
+            }
+
+            const code = getRandomStringInt(5)
+            const mail = contentMail(type, code, user.lastname, user.email)
+            await mailder.sendMail(user.email, mail.subject, mail.content)
+            const key = `${VERIFY_TYPE[type]}_${user.id}`
+            await setMemcached(key, code, 5 * 60 * 1000) // 5phut
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+            }
+        } catch (e) {
+            log.info('[getVerifyCode] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async verifyCode(params) {
+        try {
+            const { username, otp, type } = params
+            if (!username || !otp || !type) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: 'Parameters invalid.'
+                }
+            }
+            const user = await models.User.findOne({
+                attributes: ['id', 'lastname', 'status', 'email'],
+                where: {
+                    username: username,
+                }
+            })
+            if (!user) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9995].code,
+                    message: 'username is not existed.'
+                }
+            }
+            const otpCache = await getMemcached(`${VERIFY_TYPE[type]}_${user.id}`)
+            if (otpCache != otp) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9993].code,
+                    message: HTTP_STATUS[9993].message
+                }
+            }
+            if (type == 0) { // active account
+                await models.User.update({
+                    status: userStatus.ACTIVE
+                }, {
+                    where: {
+                        id: user.id
+                    }
+                })
+            }
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+            }
+        } catch (e) {
+            log.info('[verifyCode] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changePassword(params) {
+        try {
+            const { oldPassword, newPassword, loginUser } = params
+            if (!oldPassword || !newPassword || !loginUser) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            if (!isValidPassword(loginUser.password, oldPassword)) {
+                // return password not correct
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+
+            if (isValidPassword(loginUser.password, newPassword)) {
+                // return password not correct
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+
+            //check mật khẩu là sđt
+
+            const hashPass = hashPassword(newPassword)
+            await models.User.update({
+                password: hashPass,
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            })
+
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code
+            }
+        } catch (e) {
+            log.info('[changePassword] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changeProfile(params) {
+        try {
+            const { loginUser, ...data } = params
+            if (!loginUser) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            await models.User.update({
+                ...data
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            })
+            // update info user - comment - post
+            if (data.firstname || data.lastname) {
+                const set = {}
+                const user = await models.User.findByPk(loginUser.id)
+                set.full_name = user.firstname + ' ' + user.lastname
+                updateInfoUserModel(Post, loginUser.id, set)
+                updateInfoUserModel(PostComment, loginUser.id, set)
+            }
+
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+            }
+        } catch (e) {
+            log.info('[changePassword] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async changeAvatar(params) {
+        try {
+            const { avatar_id, loginUser } = params
+            if (!avatar_id || !loginUser) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[1004].code,
+                    message: HTTP_STATUS[1004].message
+                }
+            }
+            await models.User.update({
+                avatar_id: avatar_id,
+            }, {
+                where: {
+                    id: loginUser.id
+                }
+            })
+
+            const avatar_url = await getAvatarUrl(avatar_id)
+            updateInfoUserModel(Post, loginUser.id, { avatar_url })
+            updateInfoUserModel(PostComment, loginUser.id, { avatar_url })
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code
+            }
+        } catch (e) {
+            log.info('[changeAvatar] có lỗi', e)
             return {
                 error: true,
                 data: [],
@@ -249,4 +499,33 @@ function signToken(flag, payload, condition = {}) {
 
 export function setCookie(res, key, value) {
     res.cookie(key, value, { httpOnly: true })
+}
+
+async function updateInfoUserModel(model, user_id, set) {
+    try {
+        const set1 = {}, set2 = {}
+        if (set.full_name) {
+            set1['created_by.full_name'] = set.full_name
+            set2['emotions.$.full_name'] = set.full_name
+        }
+        if (set.avatar_url) {
+            set1['created_by.avatar_url'] = set.avatar_url
+            set2['emotions.$.avatar_url'] = set.avatar_url
+        }
+
+        //update created_by field
+        await model.updateMany({
+            'created_by.user_id': user_id
+        }, {
+            $set: set1
+        })
+        //update emotions field
+        await model.updateMany({
+            'emotions.user_id': user_id
+        }, {
+            $set: set2
+        })
+    } catch (error) {
+        throw error
+    }
 }

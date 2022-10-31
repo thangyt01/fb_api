@@ -1,8 +1,7 @@
-const httpStatus = require('http-status')
-
 const env = require('../configs/env')
 const Logger = require('../libs/logger')
 const { respondWithError } = require('../helpers/messageResponse')
+const { HTTP_STATUS } = require('../helpers/code')
 const logger = new Logger(__dirname)
 
 
@@ -10,8 +9,8 @@ const errorHandler = (err, req, res, next) => {
     let { statusCode, message } = err
 
     if (env.isProduction && !err.isOperational) {
-        statusCode = httpStatus.INTERNAL_SERVER_ERROR
-        message = httpStatus[httpStatus.INTERNAL_SERVER_ERROR]
+        statusCode = HTTP_STATUS[1013].code
+        message = HTTP_STATUS[1013].message
     }
 
     const response = {
@@ -39,12 +38,12 @@ const errorLoader = (app) => {
             body: req.body
         }
         logger.info(`app ApiNotFound ${JSON.stringify(api)}`, 'logs_api_response')
-        res.json(respondWithError(httpStatus.NOT_FOUND, 'API not found'))
+        res.json(respondWithError(HTTP_STATUS[1005].code, 'API not found'))
     })
 
     // 500 error
     app.use((err, req, res) => {
-        res.json(respondWithError(httpStatus.INTERNAL_SERVER_ERROR, `System error: ${err.message}`, err))
+        res.json(respondWithError(HTTP_STATUS[1013].code, `System error: ${err.message}`, err))
     })
 }
 

@@ -1,4 +1,5 @@
 import { userStatus } from '../../components/user/userConstant'
+import { getAvatarUrl } from '../../components/user/userService'
 import { verifyToken } from '../auth'
 
 const models = require('../../../database/models')
@@ -34,6 +35,7 @@ export const authentication = async (socket, next) => {
                 user.fullname = `${(user.username).slice(0, -3)}***`
             }
             socket.loginUser = user
+            socket.avatar_url = await getAvatarUrl(user.avatar_id)
             return next()
         }
         else {

@@ -1,7 +1,7 @@
 import {
     io
-} from '../../../bin/www';
+} from '../../../bin/www'
 
-// get name space of chat socket
-let chatSocket = io.of('/chat');
-require('./chatSocket')(chatSocket)
+// get name space of socket
+let bks = io.of('/')
+require('./socket')(bks)
