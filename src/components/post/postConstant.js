@@ -1,4 +1,4 @@
-export const EMOTOIN_TYPE = {
+export const EMOTION_TYPE = {
     LIKE: 'like',
     LOVE: 'love',
     HEART_TO_HEART: 'heart_to_heart',

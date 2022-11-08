@@ -71,4 +71,12 @@ export class AuthValidator {
             avatar_id: Joi.string().required()
         })
     }
+
+    static changeFriendRelationShip(){
+        return Joi.object().keys({
+            user_id: Joi.number().integer().required(),
+            other_user_id: Joi.number().integer().required(),
+            type: Joi.string().valid(['send', 'accept', 'block', 'unfriend', 'unsend']).required()
+        })
+    }
 }

@@ -471,6 +471,88 @@ export class AuthService {
             }
         }
     }
+
+    static async changeFriendRelationShip(params){
+        try {
+            const {user_id, other_user_id, type} = params
+            let status
+            switch (type) {
+                case "send":
+                    status = 'pending'
+                    break
+                case "accept":
+                    status = 'friend'
+                    break
+                case "block":
+                    status = 'block'
+                    break
+                case "unfriend":
+                case "unsend":
+                case 'unblock':
+                    status = null
+                    break
+                default:
+                    break
+            }
+            const user = await models.UserRelationship.findOne({
+                where: {
+                    user_id,
+                    other_user_id
+                }
+            })
+            if (user) {
+                if(
+                    (['block'].includes(user.status) && status == 'friend')||
+                    (['friend', 'block'].includes(user.status) && status == 'pending')||
+                    user.status == status
+                    ){return {
+                        error: true,
+                        code: HTTP_STATUS[9999].code,
+                        message: 'Status not valid'
+                    }
+                } else {
+                    await models.UserRelationship.update(
+                        {
+                            status
+                        },
+                        {
+                            where: {
+                                user_id,
+                                other_user_id
+                            }
+                        }
+                    )
+                }
+            } else {
+                if(status!== 'pending'){
+                    return {
+                        error: true,
+                        code: HTTP_STATUS[9999].code,
+                        message: 'Status not valid'
+                    }
+                } else {
+                    let result = await models.UserRelationship.create({
+                        user_id,
+                        other_user_id,
+                        status
+                    })
+                    console.log(result)
+                }
+            }
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                data: user
+            }
+        } catch (e) {
+            log.info('[changeFriendRelationship] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
 }
 
 function signToken(flag, payload, condition = {}) {

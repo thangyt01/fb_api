@@ -181,4 +181,22 @@ export class AuthController {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
+
+    static async changeFriendRelationShip(req, res) {
+        try {
+            const params = {
+                user_id: req.body ? req.body.user_id : null,
+                other_user_id: req.body ? req.body.other_user_id : null,
+                type: req.body ? req.body.type : null
+            }
+            const result = await AuthService.changeFriendRelationShip(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
 }
