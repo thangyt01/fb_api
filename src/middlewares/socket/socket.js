@@ -13,7 +13,6 @@ module.exports = (bks) => {
                 const params = {
                     loginUser,
                     socketId: socket.id,
-                    bks
                 }
                 BksService.joinRoom(params)
             })
@@ -22,7 +21,6 @@ module.exports = (bks) => {
                 const params = {
                     loginUser,
                     socketId: socket.id,
-                    bks
                 }
                 BksService.leaveRoom(params)
             })
@@ -33,7 +31,6 @@ module.exports = (bks) => {
             socket.on('server-new-post', (data) => {
                 const params = {
                     data,
-                    bks,
                     loginUser
                 }
                 BksService.createPost(params)

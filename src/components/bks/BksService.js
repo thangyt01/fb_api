@@ -1,9 +1,16 @@
 import { PostService } from '../post/postService'
+import {
+    io
+} from '../../../bin/www'
 
 const Logger = require('../../libs/logger')
 const log = new Logger(__dirname)
 
 export class BksService {
+    static get bks() {
+        return io.of('/')
+    }
+
     static nameSpaceName = 'bks'
 
     static getRoomName(roomId) {
@@ -12,9 +19,9 @@ export class BksService {
 
     static joinRoom(params) {
         try {
-            const { loginUser, socketId, bks } = params
+            const { loginUser, socketId } = params
             //join user room
-            bks.adapter.remoteJoin(socketId, this.getRoomName(loginUser.id))
+            this.bks.adapter.remoteJoin(socketId, this.getRoomName(loginUser.id))
             //join chat group room
 
         } catch (e) {
@@ -24,8 +31,8 @@ export class BksService {
 
     static leaveRoom(params) {
         try {
-            const { loginUser, socketId, bks } = params
-            bks.adapter.remoteLeave(socketId, this.getRoomName(loginUser.id))
+            const { loginUser, socketId } = params
+            this.bks.adapter.remoteLeave(socketId, this.getRoomName(loginUser.id))
 
         } catch (e) {
             log.error('[leaveRoom] có lỗi', e)
@@ -38,10 +45,10 @@ export class BksService {
      */
     static async createPost(params) {
         try {
-            const { bks, loginUser, data } = params
+            const { loginUser, data } = params
             data.loginUser = loginUser
             // send notification to follower user
-            // bks.to().emit('client-new-post', {
+            // this.bks.to().emit('client-new-post', {
 
             // })
             await PostService.create(data)
