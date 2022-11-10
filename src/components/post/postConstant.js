@@ -1,4 +1,4 @@
-export const EMOTOIN_TYPE = {
+export const EMOTION_TYPE = {
     LIKE: 'like',
     LOVE: 'love',
     HEART_TO_HEART: 'heart_to_heart',
@@ -19,4 +19,11 @@ export const FILE_MEDIA_TYPE = {
     VIDEO: 'video',
     IMAGE: 'image',
     OTHER: 'other'
+}
+
+export const EMOTION_INSTANCE_TYPE = {
+    FILE: 'file',
+    POST: 'post',
+    COMMENT: 'comment',
+    MESSAGE: 'message'
 }
