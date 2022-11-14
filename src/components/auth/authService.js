@@ -2,7 +2,7 @@ import { hashPassword, isValidPassword } from '../../middlewares/auth'
 import { userStatus } from '../user/userConstant'
 import _ from 'lodash'
 import * as randomToken from 'rand-token'
-import { COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
+import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
 import { getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
@@ -25,7 +25,7 @@ const log = new Logger(__dirname)
 export class AuthService {
     static async login(params) {
         try {
-            const { username, password } = params
+            let { username, password, deviceId } = params
             let where = {
                 status: userStatus.ACTIVE
             }
@@ -64,8 +64,47 @@ export class AuthService {
                 }
             }
 
+            if (deviceId) { // login by mobile
+                let device = await models.CoreDevice.findOne({
+                    where: {
+                        device_id: deviceId
+                    }
+                })
+                if (!device) {
+                    device = await models.CoreDevice.create({
+                        device_id: deviceId,
+                        created_by: user.id
+                    })
+                }
+                const userDevice = await models.CoreUserDevice.findOne({
+                    where: {
+                        device_id: deviceId,
+                        user_id: user.id
+                    }
+                })
+                if (!userDevice) {
+                    await models.CoreUserDevice.create({
+                        device_id: deviceId,
+                        user_id: user.id,
+                        last_login_at: new Date()
+                    })
+                } else if (userDevice.status == ACCOUNT_STATUS.NOT_ACTIVE) { // re-active user-device
+                    await models.CoreUserDevice.update({
+                        status: ACCOUNT_STATUS.ACTIVE,
+                        updated_at: new Date(),
+                        last_login_at: new Date()
+                    }, {
+                        where: {
+                            id: userDevice.id
+                        }
+                    })
+                }
+            } else {
+                deviceId = user.id
+            }
+
             const update_user = { last_login_at: new Date() }
-            const token = signToken('sign', { id: user.id, email: user.email }, { id: user.id })
+            const token = signToken('sign', { id: user.id, email: user.email, deviceId: deviceId }, { id: user.id })
             let { refresh_token, refresh_token_exp } = user
             if (!(refresh_token && refresh_token_exp && refresh_token_exp > moment().format('YYYY-MM-DD HH:mm:ss'))) {
                 refresh_token = signToken('refresh')
@@ -419,8 +458,10 @@ export class AuthService {
                 const set = {}
                 const user = await models.User.findByPk(loginUser.id)
                 set.full_name = user.firstname + ' ' + user.lastname
-                updateInfoUserModel(Post, loginUser.id, set)
-                updateInfoUserModel(PostComment, loginUser.id, set)
+                await Promise.all([
+                    updateInfoUserModel(Post, loginUser.id, set),
+                    updateInfoUserModel(PostComment, loginUser.id, set)
+                ])
             }
 
             return {
@@ -456,14 +497,63 @@ export class AuthService {
             })
 
             const avatar_url = await getAvatarUrl(avatar_id)
-            updateInfoUserModel(Post, loginUser.id, { avatar_url })
-            updateInfoUserModel(PostComment, loginUser.id, { avatar_url })
+            await Promise.all([
+                updateInfoUserModel(Post, loginUser.id, { avatar_url }),
+                updateInfoUserModel(PostComment, loginUser.id, { avatar_url })
+            ])
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code
             }
         } catch (e) {
             log.info('[changeAvatar] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async logout(req) {
+        try {
+            const { id, deviceId } = req
+            if (!id || !deviceId) {
+                return {
+                    success: true,
+                    message: HTTP_STATUS[1000].message,
+                    code: HTTP_STATUS[1000].code
+                }
+            }
+            const userDevice = await models.CoreUserDevice.findOne({
+                where: {
+                    user_id: id,
+                    device_id: deviceId,
+                    status: ACCOUNT_STATUS.ACTIVE
+                }
+            })
+            if (!userDevice) {
+                return {
+                    success: true,
+                    message: HTTP_STATUS[1000].message,
+                    code: HTTP_STATUS[1000].code
+                }
+            }
+            await models.CoreUserDevice.update({
+                status: ACCOUNT_STATUS.NOT_ACTIVE,
+                updated_at: new Date()
+            }, {
+                where: {
+                    id: userDevice.id
+                }
+            })
+            return {
+                success: true,
+                message: HTTP_STATUS[1000].message,
+                code: HTTP_STATUS[1000].code
+            }
+        } catch (e) {
+            log.info('[logout] có lỗi', e)
             return {
                 error: true,
                 data: [],
@@ -514,13 +604,13 @@ async function updateInfoUserModel(model, user_id, set) {
         }
 
         //update created_by field
-        await model.updateMany({
+        model.updateMany({
             'created_by.user_id': user_id
         }, {
             $set: set1
         })
         //update emotions field
-        await model.updateMany({
+        model.updateMany({
             'emotions.user_id': user_id
         }, {
             $set: set2

@@ -105,3 +105,25 @@ export async function authenticate(req, res, next) {
         res.json(respondWithError((HTTP_STATUS[1009].code, 'Unauthorized')))
     }
 }
+
+export async function authenAppToken(req, res, next) {
+    try {
+        const token = extractToken(req || '')
+        if (token) {
+            const decodedToken = verifyToken(token, req.authorization_type)
+            req.id = _.get(decodedToken, 'id', null)
+            req.deviceId = _.get(decodedToken, 'deviceId', null)
+        }
+        else {
+            req.id = null
+            req.deviceId = null
+        }
+    }
+    catch (e) {
+        req.id = null
+        req.deviceId = null
+    }
+    finally {
+        next()
+    }
+}

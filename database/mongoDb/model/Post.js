@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const moment = require('moment')
-const { EMOTOIN_TYPE, MODIFIED_LEVEL, FILE_MEDIA_TYPE } = require("../../../src/components/post/postConstant")
+const { EMOTION_TYPE, MODIFIED_LEVEL, FILE_MEDIA_TYPE } = require("../../../src/components/post/postConstant")
 
 const userSchema = new mongoose.Schema({
     user_id: { type: Number, required: true, index: true },
@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     avatar_url: { type: String },
     emotion_type: {
         type: String,
-        enum: Object.values(EMOTOIN_TYPE),
+        enum: Object.values(EMOTION_TYPE),
         required: false,
     }
 }, { versionKey: false, _id: false })
@@ -26,9 +26,9 @@ const mediaFileSchema = new mongoose.Schema({
 const numberEmotionSchema = new mongoose.Schema({
     emotion_type: {
         type: String,
-        enum: Object.values(EMOTOIN_TYPE),
+        enum: Object.values(EMOTION_TYPE),
         required: false,
-        default: EMOTOIN_TYPE.LIKE,
+        default: EMOTION_TYPE.LIKE,
     },
     count: { type: Number, required: true, default: 0 }
 }, { versionKey: false, _id: false })

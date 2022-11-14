@@ -93,5 +93,10 @@
         "user": "bkosocialnetwork@gmail.com",
         "password": "thangyt01",
         "service": "gmail"
+    },
+    "firebase": {
+        "url": "https://fcm.googleapis.com/fcm/send",
+        "key": "key=AAAADsIdjk0:APA91bFcSpjbAhi6KdytcFClDhHP7ao2Be9ZGnsI17psU7MgHUDbEMkD4TbYfuMyWbR4VwdtNpV99txacwW24PlTTw2Y9CO1u6UMu28kYKyog9QSrzgXbAF3GPtSoia2DT5nVhfQrfxj",
+        "sender_id": 63386259021
     }
 }

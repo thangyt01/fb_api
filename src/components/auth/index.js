@@ -1,5 +1,5 @@
 const express = require('express')
-const { authenticate } = require('../../middlewares/auth')
+const { authenticate, authenAppToken } = require('../../middlewares/auth')
 const validate = require('../../middlewares/validate')
 const { AuthController } = require('./authController')
 const { AuthValidator } = require('./authValidator')
@@ -16,7 +16,7 @@ module.exports = (app) => {
     })
     router.post('/get-verify-code', validate(AuthValidator.getVerifyCode()), AuthController.getVerifyCode)
     router.post('/verify-code', validate(AuthValidator.verifyCode()), AuthController.verifyCode)
-    router.get('/logout', AuthController.logout)
+    router.get('/logout', authenAppToken, AuthController.logout)
     router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
     router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
     router.post('/profile/change-avatar', authenticate, validate(AuthValidator.changeAvatar()), AuthController.changePassword)
@@ -58,6 +58,7 @@ module.exports = (app) => {
  *             example:
  *               username: admin
  *               password: admin
+ *               device_id: 1234
  *     responses:
  *       "1000":
  *         description: Login successfully!

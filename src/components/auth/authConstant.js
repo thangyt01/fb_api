@@ -11,3 +11,7 @@ export const VERIFY_TYPE = {
     0: 'active_account',
     1: 'forgot_password'
 }
+export const ACCOUNT_STATUS = {
+    NOT_ACTIVE: 1,
+    ACTIVE: 1
+}
