@@ -6,7 +6,7 @@ export class NotificationController {
     static async createNotif(req, res) {
         try {
             const params = {
-                user_id: req.body ? req.params.user_id : null,
+                user_id: req.body ? req.body.user_id : null,
                 post_id: req.body ? req.body.post_id : null,
                 type: req.body ? req.body.type : null,
                 action_user: req.body ? req.body.action_user : null,
@@ -26,7 +26,7 @@ export class NotificationController {
     static async createAppNotif(req, res) {
         try {
             const params = {
-                user_id: req.body ? req.params.user_id : null,
+                user_id: req.body ? req.body.user_id : null,
                 type: req.body ? req.body.type : null,
                 action_user: req.body ? req.body.action_user : null,
                 loginUser: req.loginUser

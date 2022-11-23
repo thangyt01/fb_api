@@ -10,7 +10,6 @@ const Joi = BaseJoi.extend(Extension)
 export class NotificationValidator {
     static createNotif() {
         return Joi.object().keys({
-            user_id: Joi.number().required(),
             post_id: Joi.string().required(),
             type: Joi.string().valid(NOTIFICATION_TYPE).required(),
             action_user: Joi.object().keys({
@@ -38,5 +37,5 @@ export class NotificationValidator {
         })
     }
 
-    
+
 }

@@ -23,7 +23,23 @@ export class NotificationService {
                     avatar_url: loginUser.avatar_url
                 }
             }
-            await Notification.create(data)
+            const currentNotif = await Notification.find({
+                post_id,
+                user_id,
+                type
+            })
+            if (currentNotif.length == 0) {
+                await Notification.create(data)
+
+            } else {
+                delete data.post_id
+                delete data.user_id
+                let b = await Notification.updateOne({
+                    post_id,
+                    user_id
+                }, data)
+
+            }
 
             return {
                 success: true,
@@ -70,12 +86,13 @@ export class NotificationService {
         }
     }
 
-    static async getNotifications(params){
+    static async getNotifications(params) {
         try {
             const { page, limit, loginUser } = params
             let notifResult = await Notification
                 .find({
-                    deleted_at : null
+                    deleted_at: null,
+                    user_id: loginUser.id
                 })
                 .sort({ created_at: -1 })
                 .limit(limit)
@@ -84,7 +101,7 @@ export class NotificationService {
 
             let appNotifResult = await AppNotification
                 .find({
-                    deleted_at : null
+                    deleted_at: null
                 })
                 .sort({ created_at: -1 })
                 .limit(limit)
@@ -95,7 +112,7 @@ export class NotificationService {
                 success: true,
                 code: HTTP_STATUS[1000].code,
                 message: HTTP_STATUS[1000].message,
-                data: [...appNotifResult, ...notifResult].sort((a, b)=> a > b ? -1 : 1)
+                data: [...appNotifResult, ...notifResult].sort((a, b) => a.created_at > b.created_at ? -1 : 1)
             }
         } catch (e) {
             log.info('[create] có lỗi', e)

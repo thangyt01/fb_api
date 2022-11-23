@@ -472,9 +472,9 @@ export class AuthService {
         }
     }
 
-    static async changeFriendRelationShip(params){
+    static async changeFriendRelationShip(params) {
         try {
-            const {user_id, other_user_id, type} = params
+            const { user_id, other_user_id, type } = params
             let status
             switch (type) {
                 case "send":
@@ -501,11 +501,12 @@ export class AuthService {
                 }
             })
             if (user) {
-                if(
-                    (['block'].includes(user.status) && status == 'friend')||
-                    (['friend', 'block'].includes(user.status) && status == 'pending')||
+                if (
+                    (['block'].includes(user.status) && status == 'friend') ||
+                    (['friend', 'block'].includes(user.status) && status == 'pending') ||
                     user.status == status
-                    ){return {
+                ) {
+                    return {
                         error: true,
                         code: HTTP_STATUS[9999].code,
                         message: 'Status not valid'
@@ -524,7 +525,7 @@ export class AuthService {
                     )
                 }
             } else {
-                if(status!== 'pending'){
+                if (status !== 'pending') {
                     return {
                         error: true,
                         code: HTTP_STATUS[9999].code,
