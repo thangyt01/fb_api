@@ -20,3 +20,10 @@ export const FILE_MEDIA_TYPE = {
     IMAGE: 'image',
     OTHER: 'other'
 }
+
+export const EMOTION_INSTANCE_TYPE = {
+    FILE: 'file',
+    POST: 'post',
+    COMMENT: 'comment',
+    MESSAGE: 'message'
+}

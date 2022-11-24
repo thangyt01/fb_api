@@ -12,6 +12,7 @@ export class AuthValidator {
         return Joi.object().keys({
             username: Joi.string().required(),
             password: Joi.string().required(),
+            device_id: Joi.string().allow(null).allow('')
         })
     }
 

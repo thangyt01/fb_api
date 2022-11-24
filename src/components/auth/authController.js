@@ -12,7 +12,8 @@ export class AuthController {
         try {
             const params = {
                 username: req.body ? req.body.username : null,
-                password: req.body ? req.body.password : null
+                password: req.body ? req.body.password : null,
+                deviceId: req.body ? req.body.device_id : null
             }
             const result = await AuthService.login(params)
             if (result.success) {
@@ -121,7 +122,12 @@ export class AuthController {
     static async logout(req, res) {
         try {
             res.clearCookie(COOKIE_TOKEN_KEY)
-            res.json(respondItemSuccess())
+            const result = await AuthService.logout(req)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
         } catch (error) {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }

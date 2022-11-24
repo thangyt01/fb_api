@@ -5,7 +5,6 @@ const { UserController } = require('./userController')
 
 module.exports = (app) => {
     const router = express.Router()
-    console.log("Lkerge")
     router.get('/list-friend', authenticate, UserController.getListFriend)
     router.get('/list-block-user', authenticate, UserController.getListBlockUser)
 
