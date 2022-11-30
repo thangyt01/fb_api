@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             type: DataTypes.INTEGER(11).UNSIGNED,
         },
-        status : {
+        status: {
             allowNull: true,
             type: DataTypes.ENUM('pending, friend, block')
         },
