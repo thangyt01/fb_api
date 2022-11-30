@@ -164,13 +164,7 @@ export class PostService {
             }
 
             // recommend some comment
-            const comments = await PostComment.find({
-                post_id: post_id,
-                deleted_at: null
-            }, null, {
-                sort: { created_at: -1 },
-                limit: 2
-            }).exec()
+            const comments = await this.getCommentOfPost(post.id)
             post._doc.comments = comments
             return {
                 success: true,
@@ -188,6 +182,42 @@ export class PostService {
         }
     }
 
+    static async gets(params) {
+        try {
+            const { page, limit, loginUser } = params
+
+            let posts = await Post
+                .find({
+                    deleted_at : null
+                })
+                .sort({ created_at: -1 })
+                .limit(limit)
+                .skip(page * limit)
+                .exec()
+            posts =await Promise.all(
+                posts.map(async(post)=>{
+                    post._doc.comments =  await this.getCommentOfPost(post.id)
+
+                    return post
+                })
+            )
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message,
+                data: posts
+            }
+        } catch (e) {
+            log.info('[gets] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+
     static async checkModifiedLevelUser(post, user) {
         switch (post.modified_level) {
             case MODIFIED_LEVEL.PRIVATE:
@@ -200,5 +230,15 @@ export class PostService {
             //check option
         }
         return true
+    }
+
+    static async getCommentOfPost(post_id){
+        return await PostComment.find({
+            post_id: post_id,
+            deleted_at: null
+        }, null, {
+            sort: { created_at: -1 },
+            limit: 2
+        }).exec()
     }
 }

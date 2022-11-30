@@ -20,6 +20,8 @@ module.exports = (app) => {
     router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
     router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
     router.post('/profile/change-avatar', authenticate, validate(AuthValidator.changeAvatar()), AuthController.changePassword)
+    router.post('/update-relationship',  validate(AuthValidator.changeFriendRelationShip()), AuthController.changeFriendRelationShip)
+
 
     app.use('/api', router)
 }
