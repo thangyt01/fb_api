@@ -192,8 +192,8 @@ export class AuthController {
         try {
             const params = {
                 user_id: req.body ? req.body.user_id : null,
-                other_user_id: req.body ? req.body.other_user_id : null,
-                type: req.body ? req.body.type : null
+                type: req.body ? req.body.type : null,
+                loginUser: req.loginUser
             }
             const result = await AuthService.changeFriendRelationShip(params)
             if (result.success) {

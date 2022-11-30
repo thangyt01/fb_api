@@ -2,7 +2,7 @@ import { hashPassword, isValidPassword } from '../../middlewares/auth'
 import { userStatus } from '../user/userConstant'
 import _ from 'lodash'
 import * as randomToken from 'rand-token'
-import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
+import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, RELATIONSHIP_STATUS, RELATIONSHIP_TYPE, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
 import { getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
@@ -520,80 +520,85 @@ export class AuthService {
 
     static async changeFriendRelationShip(params) {
         try {
-            const { user_id, other_user_id, type } = params
-            let status
+            const { user_id, loginUser, type } = params
+            let newStatus = null
             switch (type) {
-                case "send":
-                    status = 'pending'
+                case RELATIONSHIP_TYPE.SEND:
+                    newStatus = RELATIONSHIP_STATUS.PENDING
                     break
-                case "accept":
-                    status = 'friend'
+                case RELATIONSHIP_TYPE.ACCEPT:
+                    newStatus = RELATIONSHIP_STATUS.FRIEND
                     break
-                case "block":
-                    status = 'block'
-                    break
-                case "unfriend":
-                case "unsend":
-                case 'unblock':
-                    status = null
-                    break
-                default:
+                case RELATIONSHIP_TYPE.BLOCK:
+                    newStatus = RELATIONSHIP_STATUS.BLOCK
                     break
             }
             const user = await models.UserRelationship.findOne({
                 where: {
-                    user_id,
-                    other_user_id
-                }
-            })
-            if (user) {
-                if (
-                    (['block'].includes(user.status) && status == 'friend') ||
-                    (['friend', 'block'].includes(user.status) && status == 'pending') ||
-                    user.status == status
-                ) {
-                    return {
-                        error: true,
-                        code: HTTP_STATUS[9999].code,
-                        message: 'Status not valid'
-                    }
-                } else {
-                    await models.UserRelationship.update(
+                    [Op.or]: [
                         {
-                            status
+                            user_id: user_id,
+                            other_user_id: loginUser.id
                         },
                         {
-                            where: {
-                                user_id,
-                                other_user_id
-                            }
+                            user_id: loginUser.id,
+                            other_user_id: user_id
                         }
-                    )
+                    ]
                 }
-            } else {
-                if (status !== 'pending') {
+            })
+
+            if (!user) {
+                if (newStatus !== RELATIONSHIP_STATUS.PENDING || !newStatus) {
                     return {
                         error: true,
                         code: HTTP_STATUS[9999].code,
                         message: 'Status not valid'
                     }
-                } else {
-                    let result = await models.UserRelationship.create({
-                        user_id,
-                        other_user_id,
-                        status
-                    })
-                    console.log(result)
+                }
+
+                await models.UserRelationship.create({
+                    user_id: loginUser.id,
+                    other_user_id: user_id,
+                    status: newStatus
+                })
+                return {
+                    success: true,
+                    code: HTTP_STATUS[1000].code,
+                    message: HTTP_STATUS[1000].message,
                 }
             }
+
+            if (
+                (user.status == RELATIONSHIP_STATUS.BLOCK && newStatus == RELATIONSHIP_STATUS.FRIEND) ||
+                ([RELATIONSHIP_STATUS.FRIEND, RELATIONSHIP_STATUS.BLOCK].includes(user.status) && newStatus == RELATIONSHIP_STATUS.PENDING) ||
+                user.status == newStatus
+            ) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9999].code,
+                    message: 'Status not valid'
+                }
+            }
+            await models.UserRelationship.update(
+                {
+                    status: newStatus,
+                    user_id: loginUser.id,
+                    other_user_id: user_id
+                },
+                {
+                    where: {
+                        id: user.id
+                    }
+                }
+            )
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
-                data: user
+                message: HTTP_STATUS[1000].message,
             }
         } catch (e) {
             log.info('[changeFriendRelationship] có lỗi', e)
-
             return {
                 error: true,
                 data: [],

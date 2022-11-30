@@ -1,5 +1,5 @@
 import { HTTP_STATUS } from "../../helpers/code";
-import { respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
+import { respondArraySuccess, respondWithError } from "../../helpers/messageResponse";
 import { getListFriend, getListBlockUser } from "./userService";
 
 const config = require('config')
@@ -16,7 +16,7 @@ export class UserController {
             }
             const result = await getListFriend(params)
             if (result.success) {
-                res.json(respondItemSuccess(result.data))
+                res.json(respondArraySuccess(result.data, result.total))
             } else {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
@@ -33,7 +33,7 @@ export class UserController {
             }
             const result = await getListBlockUser(params)
             if (result.success) {
-                res.json(respondItemSuccess(result.data))
+                res.json(respondArraySuccess(result.data, result.total))
             } else {
                 res.json(respondWithError(result.code, result.message, result.data))
             }

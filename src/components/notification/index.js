@@ -9,7 +9,7 @@ module.exports = (app) => {
 
     router.post('/', authenticate, validate(NotificationValidator.createNotif()), NotificationController.createNotif)
     router.post('/app', authenticate, validate(NotificationValidator.createAppNotif()), NotificationController.createAppNotif)
-    router.get('/', authenticate,  NotificationController.getNotifications)
+    router.get('/', authenticate, NotificationController.getNotifications)
 
     app.use('/api/notif', router)
 }

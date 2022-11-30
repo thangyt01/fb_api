@@ -15,3 +15,18 @@ export const ACCOUNT_STATUS = {
     NOT_ACTIVE: 1,
     ACTIVE: 1
 }
+
+export const RELATIONSHIP_TYPE = {
+    SEND: 'send',
+    UNSEND: 'unsend',
+    ACCEPT: 'accept',
+    UNACCEPT: 'unaccept',
+    BLOCK: 'block',
+    UNBLOCK: 'unblock',
+}
+
+export const RELATIONSHIP_STATUS = {
+    PENDING: 'pending',
+    FRIEND: 'friend',
+    BLOCK: 'block'
+}
