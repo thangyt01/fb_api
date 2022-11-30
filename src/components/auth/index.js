@@ -20,6 +20,7 @@ module.exports = (app) => {
     router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
     router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
     router.post('/profile/change-avatar', authenticate, validate(AuthValidator.changeAvatar()), AuthController.changePassword)
+    router.post('/update-relationship', authenticate, validate(AuthValidator.changeFriendRelationShip()), AuthController.changeFriendRelationShip)
 
     app.use('/api', router)
 }
@@ -58,7 +59,7 @@ module.exports = (app) => {
  *             example:
  *               username: admin
  *               password: admin
- *               device_id: 1234
+ *               device_id: "1234"
  *     responses:
  *       "1000":
  *         description: Login successfully!
@@ -165,7 +166,7 @@ module.exports = (app) => {
 /**
  * @swagger
  * /logout:
- *   post:
+ *   get:
  *     summary: Đăng xuất
  *     tags: [Auth]
  *     responses:
@@ -229,6 +230,26 @@ module.exports = (app) => {
  *             type: object
  *             example:
  *               avatar_id: 63536d2fde80401beccdb42f
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /update-relationship:
+ *   post:
+ *     summary: Cập nhật quan hệ User, type gồm [send, unsend, accept, unaccept, block, unblock]
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               user_id: 2
+ *               type: send
  *     responses:
  *       "1000":
  *         description: ok!

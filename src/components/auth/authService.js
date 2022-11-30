@@ -2,13 +2,14 @@ import { hashPassword, isValidPassword } from '../../middlewares/auth'
 import { userStatus } from '../user/userConstant'
 import _ from 'lodash'
 import * as randomToken from 'rand-token'
-import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
+import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, RELATIONSHIP_STATUS, RELATIONSHIP_TYPE, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
 import { getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
 import { contentMail } from '../../helpers/message'
 import { HTTP_STATUS } from '../../helpers/code'
 import PostComment from '../../../database/mongoDb/model/PostComment'
+import { Notification } from '../../../database/mongoDb/model/Notification'
 import Post from '../../../database/mongoDb/model/Post'
 
 const jwt = require('jsonwebtoken')
@@ -460,7 +461,8 @@ export class AuthService {
                 set.full_name = user.firstname + ' ' + user.lastname
                 await Promise.all([
                     updateInfoUserModel(Post, loginUser.id, set),
-                    updateInfoUserModel(PostComment, loginUser.id, set)
+                    updateInfoUserModel(PostComment, loginUser.id, set),
+                    updateInfoUserNotificationModel(Notification, loginUser.id, set)
                 ])
             }
 
@@ -499,7 +501,8 @@ export class AuthService {
             const avatar_url = await getAvatarUrl(avatar_id)
             await Promise.all([
                 updateInfoUserModel(Post, loginUser.id, { avatar_url }),
-                updateInfoUserModel(PostComment, loginUser.id, { avatar_url })
+                updateInfoUserModel(PostComment, loginUser.id, { avatar_url }),
+                updateInfoUserNotificationModel(Notification, loginUser.id, { avatar_url })
             ])
             return {
                 success: true,
@@ -515,6 +518,94 @@ export class AuthService {
         }
     }
 
+    static async changeFriendRelationShip(params) {
+        try {
+            const { user_id, loginUser, type } = params
+            let newStatus = null
+            switch (type) {
+                case RELATIONSHIP_TYPE.SEND:
+                    newStatus = RELATIONSHIP_STATUS.PENDING
+                    break
+                case RELATIONSHIP_TYPE.ACCEPT:
+                    newStatus = RELATIONSHIP_STATUS.FRIEND
+                    break
+                case RELATIONSHIP_TYPE.BLOCK:
+                    newStatus = RELATIONSHIP_STATUS.BLOCK
+                    break
+            }
+            const user = await models.UserRelationship.findOne({
+                where: {
+                    [Op.or]: [
+                        {
+                            user_id: user_id,
+                            other_user_id: loginUser.id
+                        },
+                        {
+                            user_id: loginUser.id,
+                            other_user_id: user_id
+                        }
+                    ]
+                }
+            })
+
+            if (!user) {
+                if (newStatus !== RELATIONSHIP_STATUS.PENDING || !newStatus) {
+                    return {
+                        error: true,
+                        code: HTTP_STATUS[9999].code,
+                        message: 'Status not valid'
+                    }
+                }
+
+                await models.UserRelationship.create({
+                    user_id: loginUser.id,
+                    other_user_id: user_id,
+                    status: newStatus
+                })
+                return {
+                    success: true,
+                    code: HTTP_STATUS[1000].code,
+                    message: HTTP_STATUS[1000].message,
+                }
+            }
+
+            if (
+                (user.status == RELATIONSHIP_STATUS.BLOCK && newStatus == RELATIONSHIP_STATUS.FRIEND) ||
+                ([RELATIONSHIP_STATUS.FRIEND, RELATIONSHIP_STATUS.BLOCK].includes(user.status) && newStatus == RELATIONSHIP_STATUS.PENDING) ||
+                user.status == newStatus
+            ) {
+                return {
+                    error: true,
+                    code: HTTP_STATUS[9999].code,
+                    message: 'Status not valid'
+                }
+            }
+            await models.UserRelationship.update(
+                {
+                    status: newStatus,
+                    user_id: loginUser.id,
+                    other_user_id: user_id
+                },
+                {
+                    where: {
+                        id: user.id
+                    }
+                }
+            )
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message,
+            }
+        } catch (e) {
+            log.info('[changeFriendRelationship] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
     static async logout(req) {
         try {
             const { id, deviceId } = req
@@ -614,6 +705,26 @@ async function updateInfoUserModel(model, user_id, set) {
             'emotions.user_id': user_id
         }, {
             $set: set2
+        })
+    } catch (error) {
+        throw error
+    }
+}
+async function updateInfoUserNotificationModel(model, user_id, set) {
+    try {
+        const set1 = {}
+        if (set.full_name) {
+            set1['action_user.full_name'] = set.full_name
+        }
+        if (set.avatar_url) {
+            set1['action_user.avatar_url'] = set.avatar_url
+        }
+
+        //update created_by field
+        model.updateMany({
+            'action_user.user_id': user_id
+        }, {
+            $set: set1
         })
     } catch (error) {
         throw error

@@ -1,4 +1,4 @@
-import { VERIFY_TYPE } from './authConstant';
+import { RELATIONSHIP_TYPE, VERIFY_TYPE } from './authConstant';
 
 const moment = require('moment')
 const BaseJoi = require('@hapi/joi');
@@ -70,6 +70,13 @@ export class AuthValidator {
     static changeAvatar() {
         return Joi.object().keys({
             avatar_id: Joi.string().required()
+        })
+    }
+
+    static changeFriendRelationShip() {
+        return Joi.object().keys({
+            user_id: Joi.number().integer().required(),
+            type: Joi.string().valid(Object.values(RELATIONSHIP_TYPE)).required()
         })
     }
 }
