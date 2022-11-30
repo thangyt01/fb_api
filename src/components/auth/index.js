@@ -167,7 +167,7 @@ module.exports = (app) => {
 /**
  * @swagger
  * /logout:
- *   post:
+ *   get:
  *     summary: Đăng xuất
  *     tags: [Auth]
  *     responses:
