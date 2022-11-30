@@ -1,4 +1,4 @@
-import { VERIFY_TYPE } from './authConstant';
+import { RELATIONSHIP_TYPE, VERIFY_TYPE } from './authConstant';
 
 const moment = require('moment')
 const BaseJoi = require('@hapi/joi');
@@ -73,11 +73,10 @@ export class AuthValidator {
         })
     }
 
-    static changeFriendRelationShip(){
+    static changeFriendRelationShip() {
         return Joi.object().keys({
             user_id: Joi.number().integer().required(),
-            other_user_id: Joi.number().integer().required(),
-            type: Joi.string().valid(['send', 'accept', 'block', 'unfriend', 'unsend']).required()
+            type: Joi.string().valid(Object.values(RELATIONSHIP_TYPE)).required()
         })
     }
 }
