@@ -1,17 +1,18 @@
 import { HTTP_STATUS } from '../../helpers/code'
-import { respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
-import { PostService } from './postService'
+import { respondArraySuccess, respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
+import { NotificationService } from './notificationService'
 
-export class PostController {
-    static async create(req, res) {
+export class NotificationController {
+    static async createNotif(req, res) {
         try {
             const params = {
-                content: req.body ? req.body.content : null,
-                media_url: req.body ? req.body.media_url : null,
-                modified_level: req.body ? req.body.modified_level : null,
+                user_id: req.body ? req.body.user_id : null,
+                post_id: req.body ? req.body.post_id : null,
+                type: req.body ? req.body.type : null,
+                action_user: req.body ? req.body.action_user : null,
                 loginUser: req.loginUser
             }
-            const result = await PostService.create(params)
+            const result = await NotificationService.createNotif(params)
             if (result.success) {
                 res.json(respondItemSuccess(result.data))
             } else {
@@ -22,16 +23,15 @@ export class PostController {
         }
     }
 
-    static async edit(req, res) {
+    static async createAppNotif(req, res) {
         try {
             const params = {
-                post_id: req.params ? req.params.id : null,
-                content: req.body ? req.body.content : null,
-                media_url: req.body ? req.body.media_url : null,
-                modified_level: req.body ? req.body.modified_level : null,
+                user_id: req.body ? req.body.user_id : null,
+                type: req.body ? req.body.type : null,
+                action_user: req.body ? req.body.action_user : null,
                 loginUser: req.loginUser
             }
-            const result = await PostService.edit(params)
+            const result = await NotificationService.createAppNotif(params)
             if (result.success) {
                 res.json(respondItemSuccess(result.data))
             } else {
@@ -42,49 +42,14 @@ export class PostController {
         }
     }
 
-    static async delete(req, res) {
-        try {
-            const params = {
-                post_id: req.params ? req.params.id : null,
-                loginUser: req.loginUser
-            }
-            const result = await PostService.delete(params)
-            if (result.success) {
-                res.json(respondItemSuccess(result.data))
-            } else {
-                res.json(respondWithError(result.code, result.message, result.data))
-            }
-        } catch (error) {
-            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
-        }
-    }
-
-    static async get(req, res) {
-        try {
-            const params = {
-                post_id: req.params ? req.params.id : null,
-                loginUser: req.loginUser
-            }
-            const result = await PostService.get(params)
-            if (result.success) {
-                res.json(respondItemSuccess(result.data))
-            } else {
-                res.json(respondWithError(result.code, result.message, result.data))
-            }
-        } catch (error) {
-            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
-        }
-    }
-
-
-    static async gets(req, res) {
+    static async getNotifications(req, res) {
         try {
             const params = {
                 page: req.query ? parseInt(req.query.page) : 0,
-                limit: req.query ? parseInt(req.query.limit) : 5,
+                limit: req.query ? parseInt(req.query.limit) : 10,
                 loginUser: req.loginUser
             }
-            const result = await PostService.gets(params)
+            const result = await NotificationService.getNotifications(params)
             if (result.success) {
                 res.json(respondItemSuccess(result.data))
             } else {
@@ -94,4 +59,23 @@ export class PostController {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
+
+    static async updateNotification(req, res) {
+        try {
+            const params = {
+                page: req.query ? parseInt(req.query.page) : 0,
+                limit: req.query ? parseInt(req.query.limit) : 10,
+                loginUser: req.loginUser
+            }
+            const result = await NotificationService.getNotifications(params)
+            if (result.success) {
+                res.json(respondItemSuccess(result.data))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
 }
