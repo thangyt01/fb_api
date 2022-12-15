@@ -2,8 +2,8 @@
 const mongoose = require('mongoose');
 /**
  * create connection from URI
- * @param {*} URI 
- * @returns 
+ * @param {*} URI
+ * @returns
  */
 export function connectionFactory(URI) {
     try {

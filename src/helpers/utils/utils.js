@@ -20,3 +20,10 @@ export function removeRedundant(obj) {
         }
     })
 }
+
+export function hashMapArray(arr, field) {
+    return arr.reduce((obj, item) => {
+        obj[item[field]] = item
+        return obj
+    }, {})
+}
