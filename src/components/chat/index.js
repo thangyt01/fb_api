@@ -8,8 +8,9 @@ module.exports = (app) => {
     const router = express.Router()
 
     router.post('/', authenticate, validate(ChatValidator.create()), ChatController.create)
-    router.get('/:userId', authenticate, ChatController.get)
     router.get('/group-chat/:groupChatId', authenticate, ChatController.getGroupChat)
+    router.get('/:userId', authenticate, ChatController.get)
+    router.get('/', authenticate, ChatController.gets)
 
     app.use('/api/chat', router)
 }

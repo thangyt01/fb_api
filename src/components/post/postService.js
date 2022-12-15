@@ -162,10 +162,6 @@ export class PostService {
                     message: HTTP_STATUS[1009].message
                 }
             }
-
-            // recommend some comment
-            const comments = await this.getCommentOfPost(post.id)
-            post._doc.comments = comments
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
@@ -188,16 +184,15 @@ export class PostService {
 
             let posts = await Post
                 .find({
-                    deleted_at : null
+                    deleted_at: null
                 })
                 .sort({ created_at: -1 })
                 .limit(limit)
                 .skip(page * limit)
                 .exec()
-            posts =await Promise.all(
-                posts.map(async(post)=>{
-                    post._doc.comments =  await this.getCommentOfPost(post.id)
-
+            posts = await Promise.all(
+                posts.map(async (post) => {
+                    post._doc.comments = await this.getCommentOfPost(post.id)
                     return post
                 })
             )
@@ -232,7 +227,7 @@ export class PostService {
         return true
     }
 
-    static async getCommentOfPost(post_id){
+    static async getCommentOfPost(post_id) {
         return await PostComment.find({
             post_id: post_id,
             deleted_at: null

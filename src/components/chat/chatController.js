@@ -60,4 +60,22 @@ export class ChatController {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
+
+    static async gets(req, res) {
+        try {
+            const params = {
+                limit: +req.query.limit || 20,
+                page: +req.query.page || 0,
+                loginUser: req.loginUser,
+            }
+            const result = await ChatService.gets(params)
+            if (result.success) {
+                res.json(respondArraySuccess(result.data, result.total))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
 }

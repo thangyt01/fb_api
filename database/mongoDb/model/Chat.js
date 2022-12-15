@@ -42,7 +42,7 @@ const schema = new mongoose.Schema({
     created_at: { type: String, default: moment().format('YYYY-MM-DD HH:mm:ss') },
     updated_at: { type: String, default: null },
     deleted_at: { type: String, default: null },
-    created_by: { type: String, required: true }
+    created_by: { type: Number, required: true }
 }, { versionKey: false })
 
 const Chat = mongoose.model('chats', schema)

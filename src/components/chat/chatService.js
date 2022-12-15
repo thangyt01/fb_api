@@ -1,9 +1,10 @@
 import { HTTP_STATUS } from '../../helpers/code'
 import GroupChat from '../../../database/mongoDb/model/GroupChat'
 import Chat from '../../../database/mongoDb/model/Chat'
-import { getAvatarUrl } from '../user/userService'
+import { getAvatarUrl, getAvatarUrlByIds } from '../user/userService'
 import mongoose from 'mongoose'
-import { removeRedundant } from '../../helpers/utils/utils'
+import { hashMapArray, removeRedundant } from '../../helpers/utils/utils'
+import moment from 'moment'
 
 const models = require('../../../database/models')
 const Logger = require('../../libs/logger')
@@ -56,7 +57,8 @@ export class ChatService {
                 content: content,
                 media_file: media_url,
                 reply_id: reply_id,
-                created_by: loginUser.id
+                created_by: loginUser.id,
+                created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
             }
             if (reply_id) {
                 const reply = await Chat.findById(reply_id)
@@ -144,6 +146,9 @@ export class ChatService {
                     code: HTTP_STATUS[1000].code,
                     message: HTTP_STATUS[1000].message,
                     data: {
+                        name: groupChat.name,
+                        is_edit_name: groupChat.is_edit_name,
+                        is_group_chat: groupChat.is_group_chat,
                         group_chat_id: groupChat._id,
                         members: [
                             {
@@ -205,6 +210,9 @@ export class ChatService {
                 code: HTTP_STATUS[1000].code,
                 message: HTTP_STATUS[1000].message,
                 data: {
+                    name: groupChat.name,
+                    is_edit_name: groupChat.is_edit_name,
+                    is_group_chat: groupChat.is_group_chat,
                     group_chat_id: groupChat._id,
                     members: [
                         {
@@ -277,6 +285,7 @@ export class ChatService {
             }
 
             let users = await models.User.findAll({
+                attributes: ['id', 'firstname', 'lastname', 'avatar_id'],
                 where: {
                     id: groupChat.members.map(item => item.user_id)
                 }
@@ -322,6 +331,9 @@ export class ChatService {
                 code: HTTP_STATUS[1000].code,
                 message: HTTP_STATUS[1000].message,
                 data: {
+                    name: groupChat.name,
+                    is_edit_name: groupChat.is_edit_name,
+                    is_group_chat: groupChat.is_group_chat,
                     group_chat_id: groupChat._id,
                     members: await Promise.all(groupChat.members.map(async item => {
                         const user = users[item.user_id]
@@ -335,6 +347,105 @@ export class ChatService {
             }
         } catch (e) {
             log.info('[getGroupChat] có lỗi', e)
+            return {
+                error: true,
+                data: [],
+                message: e.stack
+            }
+        }
+    }
+
+    static async gets(params) {
+        try {
+            const { page, limit, loginUser } = params
+            let [chats, total] = await Promise.all([
+                Chat.aggregate([
+                    {
+                        $lookup: {
+                            from: 'group_chats',
+                            localField: 'group_chat_id',
+                            foreignField: '_id',
+                            as: 'group_chat'
+                        }
+                    },
+                    {
+                        $match: {
+                            'group_chat.members': {
+                                $elemMatch: {
+                                    user_id: loginUser.id
+                                }
+                            },
+                            'group_chat.deleted_at': null,
+                        }
+                    },
+                    {
+                        $sort: { created_at: -1 }
+                    },
+                    {
+                        $group: {
+                            _id: "$group_chat_id",
+                            group_chat_id: { $first: "$group_chat_id" },
+                            name: { $first: "$group_chat[0].name" },
+                            is_edit_name: { $first: "$group_chat[0].is_edit_name" },
+                            is_group_chat: { $first: "$group_chat[0].is_group_chat" },
+                            message_id: { $first: "$_id" },
+                            content: { $first: "$content" },
+                            media_file: { $first: "$media_file" },
+                            reply_id: { $first: "$reply_id" },
+                            read_at: { $first: "$read_at" },
+                            is_edit: { $first: "$is_edit" },
+                            created_at: { $first: "$created_at" },
+                            updated_at: { $first: "$updated_at" },
+                            deleted_at: { $first: "$deleted_at" },
+                            created_by: { $first: "$created_by" },
+                        }
+                    },
+                    {
+                        $sort: { created_at: -1 }
+                    },
+                    { $skip: page * limit },
+                    { $limit: limit }
+                ]),
+                GroupChat.countDocuments({
+                    'members': {
+                        $elemMatch: {
+                            user_id: loginUser.id
+                        }
+                    },
+                    'deleted_at': null,
+                })
+            ])
+
+            let users = await models.User.findAll({
+                where: {
+                    id: chats.map(item => item.created_by)
+                },
+                raw: true
+            })
+            let avatar_urls = await getAvatarUrlByIds(users.map(item => item.avatar_id))
+            hashMapArray(avatar_urls, '_id')
+            users = users.reduce((obj, item) => {
+                obj[item.id] = item
+                return obj
+            }, {})
+            chats = chats.map(chat => {
+                chat.created_by = {
+                    user_id: chat.created_by,
+                    firstname: users[chat.created_by].firstname,
+                    lastname: users[chat.created_by].lastname,
+                    avatar_url: avatar_urls[users[chat.created_by]?.avatar_id]?.url || null,
+                }
+                return chat
+            })
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message,
+                data: chats,
+                total: total
+            }
+        } catch (e) {
+            log.info('[gets] có lỗi', e)
             return {
                 error: true,
                 data: [],
