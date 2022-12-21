@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from '../../helpers/code'
 import { respondArraySuccess, respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
+import { CommentService } from './commentService'
 
 export class CommentController {
     static async create(req, res) {

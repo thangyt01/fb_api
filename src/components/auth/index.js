@@ -3,6 +3,8 @@ const { authenticate, authenAppToken } = require('../../middlewares/auth')
 const validate = require('../../middlewares/validate')
 const { AuthController } = require('./authController')
 const { AuthValidator } = require('./authValidator')
+const multer = require('multer')
+const fileUpload = multer()
 
 module.exports = (app) => {
     const router = express.Router()
@@ -19,7 +21,7 @@ module.exports = (app) => {
     router.get('/logout', authenAppToken, AuthController.logout)
     router.post('/profile', authenticate, validate(AuthValidator.changeProfile()), AuthController.changeProfile)
     router.post('/profile/change-password', authenticate, validate(AuthValidator.changePassword()), AuthController.changePassword)
-    router.post('/profile/change-avatar', authenticate, validate(AuthValidator.changeAvatar()), AuthController.changePassword)
+    router.post('/profile/change-avatar', authenticate, fileUpload.single('file'), AuthController.changeAvatar)
     router.post('/update-relationship', authenticate, validate(AuthValidator.changeFriendRelationShip()), AuthController.changeFriendRelationShip)
 
     app.use('/api', router)
@@ -85,6 +87,9 @@ module.exports = (app) => {
  *               lastname: khoa
  *               phone: "0372010912"
  *               gender: male
+ *               address: Số 1, Đại Cồ Việt
+ *               link_github: https://github.com/thangyt01
+ *               link_twitter: https://twitter.com/
  *               birthday: 2001-01-01
  *     responses:
  *       "1000":
@@ -191,6 +196,9 @@ module.exports = (app) => {
  *               lastname: Thắng
  *               gender: male
  *               birthday: 2001-01-01
+ *               address: Số 1, Đại Cồ Việt
+ *               link_github: https://github.com/thangyt01
+ *               link_twitter: https://twitter.com/
  *     responses:
  *       "1000":
  *         description: ok!
@@ -223,13 +231,14 @@ module.exports = (app) => {
  *     summary: Đổi ảnh đại diện
  *     tags: [Auth]
  *     requestBody:
- *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             example:
- *               avatar_id: 63536d2fde80401beccdb42f
+ *             properties:
+ *               file:
+ *                 type: file
+ *
  *     responses:
  *       "1000":
  *         description: ok!

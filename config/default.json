@@ -3,7 +3,7 @@
         "username": "bk",
         "password": "bk@1234",
         "database": "social_network",
-        "host": "34.87.2.38",
+        "host": "34.121.14.50",
         "dialect": "mysql"
     },
     "db_slaves": [
@@ -11,7 +11,7 @@
             "username": "bk",
             "password": "bk@1234",
             "database": "social_network",
-            "host": "34.87.2.38",
+            "host": "34.121.14.50",
             "dialect": "mysql"
         }
     ],
@@ -46,7 +46,7 @@
         "max_key_size": 1024,
         "timeout": 5000,
         "max_expriration": 2592000,
-        "host": "34.87.2.38",
+        "host": "34.121.14.50",
         "port": "11211"
     },
     "socket": {
@@ -62,14 +62,14 @@
         "password": "bk1234",
         "port": "20007",
         "database": "bk_social_network",
-        "host": "34.87.2.38",
+        "host": "34.121.14.50",
         "parameter": "",
-        "uri": null,
+        "uri": "mongodb://34.121.14.50:20007/bk_social_network?",
         "mongo_url": null
     },
     "redis": {
         "port": 6379,
-        "host": "34.87.2.38",
+        "host": "34.121.14.50",
         "username": "",
         "password": "",
         "db": 0
@@ -98,5 +98,13 @@
         "url": "https://fcm.googleapis.com/fcm/send",
         "key": "key=AAAADsIdjk0:APA91bFcSpjbAhi6KdytcFClDhHP7ao2Be9ZGnsI17psU7MgHUDbEMkD4TbYfuMyWbR4VwdtNpV99txacwW24PlTTw2Y9CO1u6UMu28kYKyog9QSrzgXbAF3GPtSoia2DT5nVhfQrfxj",
         "sender_id": 63386259021
+    },
+    "cloudinary": {
+        "api_key": "368276772125136",
+        "api_secret": "jkd1FXFLY9Mt_dR7-iVZ20kEg3o",
+        "cloud_name": "dbb5kgkzr",
+        "max_file_upload": 5,
+        "folder": "backend_social_network",
+        "max_size": 10485760
     }
 }

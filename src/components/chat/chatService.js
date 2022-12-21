@@ -3,7 +3,7 @@ import GroupChat from '../../../database/mongoDb/model/GroupChat'
 import Chat from '../../../database/mongoDb/model/Chat'
 import { getAvatarUrl, getAvatarUrlByIds } from '../user/userService'
 import mongoose from 'mongoose'
-import { hashMapArray, removeRedundant } from '../../helpers/utils/utils'
+import { getAvatarDefault, hashMapArray, removeRedundant } from '../../helpers/utils/utils'
 import moment from 'moment'
 
 const models = require('../../../database/models')
@@ -433,7 +433,7 @@ export class ChatService {
                     user_id: chat.created_by,
                     firstname: users[chat.created_by].firstname,
                     lastname: users[chat.created_by].lastname,
-                    avatar_url: avatar_urls[users[chat.created_by]?.avatar_id]?.url || null,
+                    avatar_url: avatar_urls[users[chat.created_by]?.avatar_id]?.url || getAvatarDefault(),
                 }
                 return chat
             })

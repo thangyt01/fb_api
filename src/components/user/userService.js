@@ -2,12 +2,14 @@ import mongoose from 'mongoose'
 import { HTTP_STATUS } from '../../helpers/code'
 import { Op } from 'sequelize'
 import { RELATIONSHIP_STATUS } from '../auth/authConstant'
+import { getAvatarDefault } from '../../helpers/utils/utils'
 const models = require('../../../database/models')
 const File = require('../../../database/mongoDb/model/File')
 
 export async function getAvatarUrl(avatar_id) {
-    if (!avatar_id || !mongoose.Types.ObjectId.isValid(avatar_id)) return ''
-    return await File.findById(avatar_id)
+    if (!avatar_id || !mongoose.Types.ObjectId.isValid(avatar_id)) return getAvatarDefault()
+    const file = await File.findById(avatar_id)
+    return file.url
 }
 export async function getListFriend(params) {
     try {
@@ -56,7 +58,7 @@ export async function getListFriend(params) {
             return obj
         }, {})
         users = users.map(item => {
-            if (item.avatar_id) item.avatar_url = avatar_map[item.avatar_url].url
+            item.avatar_url = avatar_map[item.avatar_id]?.url || getAvatarDefault()
             return item
         })
 
@@ -122,7 +124,7 @@ export async function getListBlockUser(params) {
             return obj
         }, {})
         users = users.map(item => {
-            if (item.avatar_id) item.avatar_url = avatar_map[item.avatar_url].url
+            item.avatar_url = avatar_map[item.avatar_id].url || getAvatarDefault
             return item
         })
 
