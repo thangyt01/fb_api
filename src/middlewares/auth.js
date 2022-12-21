@@ -75,7 +75,7 @@ export async function authenticate(req, res, next) {
                     ]
                 }
             ],
-            attributes: ['id', 'username', 'email', 'password', 'firstname', 'lastname', 'birthday', 'avatar_id',
+            attributes: ['id', 'username', 'email', 'password', 'firstname', 'lastname', 'birthday', 'avatar_id', 'address', 'link_github', 'link_twitter',
                 'gender', 'phone', 'status', 'last_login_at', 'created_at', 'updated_at'],
             where: {
                 id: id

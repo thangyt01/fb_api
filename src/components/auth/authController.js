@@ -1,5 +1,6 @@
 import { HTTP_STATUS } from "../../helpers/code";
 import { respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
+import { upload } from "../../middlewares/upload";
 import { COOKIE_TOKEN_KEY } from "./authConstant";
 import { AuthService, setCookie } from "./authService";
 
@@ -39,6 +40,9 @@ export class AuthController {
                 password: req.body ? req.body.password : null,
                 email: req.body ? req.body.email : null,
                 phone: req.body ? req.body.phone : null,
+                address: req.body ? req.body.address : null,
+                link_github: req.body ? req.body.link_github : null,
+                link_twitter: req.body ? req.body.link_twitter : null,
                 avatar_id: req.body ? req.body.avatar_id : null,
                 gender: req.body ? req.body.gender : null,
                 birthday: req.body?.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null
@@ -157,6 +161,9 @@ export class AuthController {
                 lastname: req.body ? req.body.lastname : null,
                 firstname: req.body ? req.body.firstname : null,
                 gender: req.body ? req.body.gender : null,
+                address: req.body ? req.body.address : null,
+                link_github: req.body ? req.body.link_github : null,
+                link_twitter: req.body ? req.body.link_twitter : null,
                 birthday: req.body && req.body.birthday ? moment(req.body.birthday).format('YYYY-MM-DD HH:mm:ss') : null,
                 loginUser: req.loginUser || null
             }
@@ -173,8 +180,9 @@ export class AuthController {
 
     static async changeAvatar(req, res) {
         try {
+            const avatar = await upload(req, { isChangeAvatar: true })
             const params = {
-                avatarId: req.body ? req.body.avatar_id : null,
+                avatar: avatar[0],
                 loginUser: req.loginUser || null
             }
             const result = await AuthService.changeAvatar(params)
@@ -184,6 +192,7 @@ export class AuthController {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
         } catch (error) {
+            console.log("first", error)
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }

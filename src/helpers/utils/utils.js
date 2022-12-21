@@ -1,3 +1,5 @@
+import { AVATAR_DEFAULT } from "../../components/user/userConstant"
+
 export function getRandomIntInclusive(min, max) {
     min = Math.ceil(min)
     max = Math.floor(max)
@@ -26,4 +28,11 @@ export function hashMapArray(arr, field) {
         obj[item[field]] = item
         return obj
     }, {})
+}
+
+export function getAvatarDefault(gender) {
+    if (!gender || !AVATAR_DEFAULT[gender]) {
+        return AVATAR_DEFAULT.OTHER
+    }
+    return AVATAR_DEFAULT[gender]
 }
