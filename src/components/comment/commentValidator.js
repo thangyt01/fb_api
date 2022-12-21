@@ -11,7 +11,7 @@ export class CommentValidator {
             content: Joi.string().required(),
             media_url: Joi.object().keys({
                 url: Joi.string().required(),
-                type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).allow(null)
+                type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).required()
             }).allow(null),
             reply_id: Joi.string().allow(null),
         })
@@ -22,7 +22,7 @@ export class CommentValidator {
             content: Joi.string().allow(null),
             media_url: Joi.object().keys({
                 url: Joi.string().required(),
-                type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).allow(null)
+                type: Joi.string().valid(Object.values(FILE_MEDIA_TYPE)).required()
             }).allow(null),
         })
     }

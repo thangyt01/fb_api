@@ -1,18 +1,18 @@
-import { HTTP_STATUS } from '../../helpers/code'
-import { respondArraySuccess, respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
-import { CommentService } from './commentService'
+import { HTTP_STATUS } from "../../helpers/code";
+import { respondArraySuccess, respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
+import { ChatService } from "./chatService";
 
-export class CommentController {
+export class ChatController {
     static async create(req, res) {
         try {
             const params = {
-                post_id: req.params ? req.params.postId : null,
+                group_chat_id: req.body ? req.body.group_chat_id : null,
                 content: req.body ? req.body.content : null,
-                media_url: req.body ? req.body.media_url : null,
                 reply_id: req.body ? req.body.reply_id : null,
-                loginUser: req.loginUser
+                media_url: req.body ? req.body.media_url : null,
+                loginUser: req.loginUser,
             }
-            const result = await CommentService.create(params)
+            const result = await ChatService.create(params)
             if (result.success) {
                 res.json(respondItemSuccess(result.data))
             } else {
@@ -26,13 +26,12 @@ export class CommentController {
     static async get(req, res) {
         try {
             const params = {
-                post_id: req.params ? req.params.postId : null,
-                reply_id: req.query ? req.query.reply_id : null,
-                limit: req.query.limit ? +req.query.limit : 10,
-                page: req.query.page ? +req.query.page : 0,
-                loginUser: req.loginUser
+                receive_id: +req.params.userId || null,
+                limit: +req.query.limit || 20,
+                page: +req.query.page || 0,
+                loginUser: req.loginUser,
             }
-            const result = await CommentService.get(params)
+            const result = await ChatService.get(params)
             if (result.success) {
                 res.json(respondArraySuccess(result.data, result.total))
             } else {
@@ -43,17 +42,17 @@ export class CommentController {
         }
     }
 
-    static async edit(req, res) {
+    static async getGroupChat(req, res) {
         try {
             const params = {
-                comment_id: req.params ? req.params.commentId : null,
-                content: req.body ? req.body.content : null,
-                media_url: req.body ? req.body.media_url : null,
-                loginUser: req.loginUser
+                groupChatId: req.params.groupChatId || null,
+                limit: +req.query.limit || 20,
+                page: +req.query.page || 0,
+                loginUser: req.loginUser,
             }
-            const result = await CommentService.edit(params)
+            const result = await ChatService.getGroupChat(params)
             if (result.success) {
-                res.json(respondItemSuccess(result.data))
+                res.json(respondArraySuccess(result.data, result.total))
             } else {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
@@ -62,15 +61,16 @@ export class CommentController {
         }
     }
 
-    static async delete(req, res) {
+    static async gets(req, res) {
         try {
             const params = {
-                comment_id: req.params ? req.params.commentId : null,
-                loginUser: req.loginUser
+                limit: +req.query.limit || 20,
+                page: +req.query.page || 0,
+                loginUser: req.loginUser,
             }
-            const result = await CommentService.delete(params)
+            const result = await ChatService.gets(params)
             if (result.success) {
-                res.json(respondItemSuccess(result.data))
+                res.json(respondArraySuccess(result.data, result.total))
             } else {
                 res.json(respondWithError(result.code, result.message, result.data))
             }

@@ -22,3 +22,9 @@ export const ACTION_USER = {
     UNFOLLOW: 'unfollow',
     UPLOAD_FILE: 'upload_file'
 }
+
+export const AVATAR_DEFAULT = {
+    MALE: 'https://res.cloudinary.com/dbb5kgkzr/image/upload/v1671521129/backend_social_network/default-avatar-profile-icon-grey-600w-767771860_znwm4f.jpg',
+    FAMALE: 'https://res.cloudinary.com/dbb5kgkzr/image/upload/v1671521110/backend_social_network/default-avatar-profile-icon-grey-600w-767771863_lvo112.jpg',
+    OTHER: 'https://res.cloudinary.com/dbb5kgkzr/image/upload/v1671521001/backend_social_network/default-avatar-profile-icon-vector-600w-1745180411_qgcynx.jpg'
+}

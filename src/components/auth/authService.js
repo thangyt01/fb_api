@@ -11,6 +11,7 @@ import { HTTP_STATUS } from '../../helpers/code'
 import PostComment from '../../../database/mongoDb/model/PostComment'
 import { Notification } from '../../../database/mongoDb/model/Notification'
 import Post from '../../../database/mongoDb/model/Post'
+import { getAvatarUrl } from '../user/userService'
 
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
@@ -114,6 +115,7 @@ export class AuthService {
             }
 
             let { password: uPassword, ...profile } = user
+            profile.avatar_url = await getAvatarUrl(user.avatar_id)
             models.User.update(update_user, {
                 where: {
                     id: user.id,
@@ -482,8 +484,8 @@ export class AuthService {
 
     static async changeAvatar(params) {
         try {
-            const { avatar_id, loginUser } = params
-            if (!avatar_id || !loginUser) {
+            const { avatar, loginUser } = params
+            if (!avatar || !loginUser) {
                 return {
                     error: true,
                     code: HTTP_STATUS[1004].code,
@@ -491,14 +493,14 @@ export class AuthService {
                 }
             }
             await models.User.update({
-                avatar_id: avatar_id,
+                avatar_id: (avatar._id).toString(),
             }, {
                 where: {
                     id: loginUser.id
                 }
             })
 
-            const avatar_url = await getAvatarUrl(avatar_id)
+            const avatar_url = avatar.url
             await Promise.all([
                 updateInfoUserModel(Post, loginUser.id, { avatar_url }),
                 updateInfoUserModel(PostComment, loginUser.id, { avatar_url }),

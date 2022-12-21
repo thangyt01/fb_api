@@ -46,12 +46,24 @@ module.exports = (sequelize, DataTypes) => {
         },
         avatar_id: {
             allowNull: true,
-            type: DataTypes.INTEGER(10).UNSIGNED,
+            type: DataTypes.STRING,
         },
         status: {
             allowNull: false,
             type: DataTypes.ENUM('draft', 'active', 'inactive'),
             defaultValue: 'active',
+        },
+        address: {
+            allowNull: false,
+            type: DataTypes.STRING
+        },
+        link_github: {
+            allowNull: false,
+            type: DataTypes.STRING
+        },
+        link_twitter: {
+            allowNull: false,
+            type: DataTypes.STRING
         },
         last_login_at: {
             allowNull: true,
