@@ -6,6 +6,9 @@ module.exports = (app) => {
     const router = express.Router()
     router.get('/list-friend', authenticate, UserController.getListFriend)
     router.get('/list-block-user', authenticate, UserController.getListBlockUser)
+    router.get('/find-user', authenticate, UserController.findUser)
+    router.get('/list-friend-request', authenticate, UserController.getListFriendRequest)
+
 
     app.use('/api/user', router)
 }
