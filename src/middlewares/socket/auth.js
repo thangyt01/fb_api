@@ -30,12 +30,12 @@ export const authentication = async (socket, next) => {
         })
 
         if (user && user.status == userStatus.ACTIVE) {
-            user.fullname = user.firstname + user.lastname
+            user.fullname = user.firstname + ' ' + user.lastname
             if (!user.fullname) {
                 user.fullname = `${(user.username).slice(0, -3)}***`
             }
             socket.loginUser = user
-            socket.avatar_url = await getAvatarUrl(user.avatar_id)
+            socket.loginUser.avatar_url = await getAvatarUrl(user.avatar_id)
             return next()
         }
         else {

@@ -19,6 +19,8 @@ require('./middlewares/memcached')
 // redis
 // require('../database/redisDb')
 
+//elasticsearch
+require('../database/elasticSearch')
 
 const bannerLogger = require('./libs/banner')
 const Logger = require('./libs/logger')
