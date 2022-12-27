@@ -14,6 +14,7 @@ module.exports = (app) => {
     const router = express.Router()
     router.post('/firebase-token', authenAppToken, validate(ActionLogValidator.firebaseToken()), ActionLogController.updateFirebaseToken)
     router.post('/upload', authenticate, fileUpload.array('file', MAX_FILE), uploadFiles)
+    router.get('/migrate/elastic-search', authenticate, ActionLogController.migrateUsersDbToElasticSearch)
 
     app.use('/api/action', router)
 }
@@ -60,6 +61,18 @@ module.exports = (app) => {
  *                 items:
  *                   type: file
  *
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /action/migrate/elastic-search:
+ *   get:
+ *     summary: Migrate bảng users sang elasticsearch
+ *     tags: [Action Log]
+
  *     responses:
  *       "1000":
  *         description: ok!

@@ -24,7 +24,7 @@ export class ClientEmiter extends EventEmitter {
         return this
     }
 
-    static exceptUser(userIds = []) {
+    static exceptUsers(userIds = []) {
         const rooms = userIds.map(userId => this.getRoomName(userId))
         this.io.except(rooms)
         return this

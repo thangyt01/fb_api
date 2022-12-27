@@ -16,8 +16,12 @@ cloudinary.config({
 
 export const uploadFiles = async (req, res) => {
     try {
-        await upload(req)
-        res.json(respondItemSuccess())
+        const result = await upload(req)
+        if (result.success) {
+            res.json(respondItemSuccess(result.data))
+        } else {
+            res.json(respondWithError(result.code, result.message, result.data))
+        }
     } catch (error) {
         console.log("uploadFiles có lỗi", error)
         res.json(respondWithError(HTTP_STATUS[1007].code, HTTP_STATUS[1007].message))
@@ -64,7 +68,12 @@ export async function upload(req, option = {}) {
             upload_by: req.loginUser.id,
         }
     }))
-    return files
+    return {
+        success: true,
+        code: HTTP_STATUS[1000].code,
+        message: HTTP_STATUS[1000].message,
+        data: files
+    }
 }
 
 function getFileName(fileName) {

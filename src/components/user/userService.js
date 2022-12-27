@@ -3,6 +3,7 @@ import { HTTP_STATUS } from '../../helpers/code'
 import { Op } from 'sequelize'
 import { RELATIONSHIP_STATUS } from '../auth/authConstant'
 import { getAvatarDefault } from '../../helpers/utils/utils'
+import { ElasticSearch } from '../../../database/elasticSearch'
 const models = require('../../../database/models')
 const File = require('../../../database/mongoDb/model/File')
 
@@ -242,10 +243,79 @@ export async function getListBlockUser(params) {
     }
 }
 
+export async function getListUser(params) {
+    try {
+        const { page, limit, keyword, loginUser } = params
+        const resultEs = await ElasticSearch.search({
+            index_name: 'users',
+            page,
+            limit,
+            query: {
+                multi_match: {
+                    query: keyword,
+                    fields: ["username", "lastname", "firstname", "phone", "email", "link_github", "link_twitter", "address"]
+                }
+            }
+        })
+
+        const userRelation = await models.UserRelationship.findAll({
+            where: {
+                [Op.or]: [
+                    { user_id: loginUser.id },
+                    { other_user_id: loginUser.id },
+                ],
+            },
+            raw: true
+        })
+        const listBlock = userRelation.filter(u => u.status === RELATIONSHIP_STATUS.BLOCK)
+        const hashUser = userRelation.reduce((obj, item) => {
+            const key = item.user_id < item.other_user_id ? `${item.user_id}_${item.other_user_id}` : `${item.other_user_id}_${item.user_id}`
+            obj[key] = item
+            return obj
+        }, {})
+
+        let listUser = resultEs.hits.hits.filter(user => !listBlock.find(item => item.id == user._id))
+            .map(user => {
+                const key = user._id < loginUser.id ? `${user._id}_${loginUser.id}` : `${loginUser.id}_${user._id}`
+                const hash = hashUser[key]
+                if (hash) {
+                    let relation
+                    if (hash.status === RELATIONSHIP_STATUS.FRIEND) {
+                        relation = RELATIONSHIP_STATUS.FRIEND
+                    } else if (hash.status === RELATIONSHIP_STATUS.PENDING) {
+                        relation = RELATIONSHIP_STATUS.PENDING
+                        user._source.is_send_invitation = false
+                        if (hash.user_id === loginUser.id) { // loginUser là người gửi lời mời kết bạn
+                            user._source.is_send_invitation = true
+                        }
+                    }
+                    user._source.relation_ship = relation
+                }
+                return user._source
+            })
+        return {
+            success: true,
+            code: HTTP_STATUS[1000].code,
+            message: HTTP_STATUS[1000].message,
+            data: listUser,
+            total: resultEs.hits.total.value
+        }
+    } catch (e) {
+        log.info('[getListUser] có lỗi', e)
+        return {
+            error: true,
+            data: [],
+            message: e.stack
+        }
+    }
+}
+
 export async function getAvatarUrlByIds(avatar_ids) {
     try {
         return await File.find({
-            _id: avatar_ids,
+            _id: {
+                $in: avatar_ids
+            },
             deleted_at: null
         })
     } catch (e) {
