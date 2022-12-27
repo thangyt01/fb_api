@@ -64,18 +64,18 @@ module.exports = (app) => {
  *         description: The post id
  *         example:
  *           6357ad737f21d0176439f038
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             example:
- *               content: Tân sinh viên, đầu tháng xông xênh, tiêu xài xả láng, cuối tháng lại ăn mỳ tôm. Có trường hợp tiêu hết 20 triệu trong tháng đầu. Không ít sinh viên dù đi ở trọ nhưng mua sắm đủ từ thảm lót chân, dây trang trí phòng, khung tranh, đèn led, đến hộp tăm, hộp đựng gia vị cùng nhiều đồ nấu nướng, giặt giũ.
- *               media_url:
- *                  - url: https://media.vov.vn/sites/default/files/styles/large/public/2021-08/man_city_vs_norwich.jpg
- *                    type: image
- *               modified_level: public
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /post/:
+ *   get:
+ *     summary: Danh sách bài đăng
+ *     tags: [Post]
+ *
  *     responses:
  *       "1000":
  *         description: ok!

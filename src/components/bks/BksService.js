@@ -2,7 +2,10 @@ import { PostService } from '../post/postService'
 import {
     io
 } from '../../../bin/www'
+import { ChatService } from '../chat/chatService'
+import { ClientEmiter } from '../emits/ClientEmiter'
 
+const _ = require('lodash')
 const Logger = require('../../libs/logger')
 const log = new Logger(__dirname)
 
@@ -45,15 +48,32 @@ export class BksService {
      */
     static async createPost(params) {
         try {
-            const { loginUser, data } = params
+            const { loginUser, ...data } = params
             data.loginUser = loginUser
             // send notification to follower user
             // this.bks.to().emit('client-new-post', {
 
             // })
-            await PostService.create(data)
+            await PostService.create(params)
         } catch (e) {
             log.error('[createPost] có lỗi', e)
+        }
+    }
+
+    static async createChat(params) {
+        try {
+            const { loginUser } = params
+            const result = await ChatService.create(params)
+            if (_.isEmpty(result.data?.members)) {
+                return false
+            }
+            ClientEmiter.toUsers(result.data.members.map(item => item.user_id))
+                .emit('client-new-chat', {
+                    ...result,
+                    sender: loginUser
+                })
+        } catch (e) {
+            log.error('[createChat] có lỗi', e)
         }
     }
 }

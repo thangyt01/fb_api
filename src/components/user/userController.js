@@ -1,10 +1,6 @@
 import { HTTP_STATUS } from "../../helpers/code";
 import { respondArraySuccess, respondWithError } from "../../helpers/messageResponse";
-import { getListFriend, getListBlockUser } from "./userService";
-
-const config = require('config')
-const authConfig = config.get('auth')
-const moment = require('moment')
+import { getListFriend, getListBlockUser, getListUser } from "./userService";
 
 export class UserController {
     static async getListFriend(req, res) {
@@ -24,6 +20,7 @@ export class UserController {
             res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
         }
     }
+
     static async getListBlockUser(req, res) {
         try {
             const params = {
@@ -32,6 +29,25 @@ export class UserController {
                 loginUser: req.loginUser
             }
             const result = await getListBlockUser(params)
+            if (result.success) {
+                res.json(respondArraySuccess(result.data, result.total))
+            } else {
+                res.json(respondWithError(result.code, result.message, result.data))
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async getList(req, res) {
+        try {
+            const params = {
+                page: req.query.page ? parseInt(req.query.page) || 0 : 0,
+                limit: req.query.limit ? parseInt(req.query.limit) || 20 : 20,
+                keyword: req.query.keyword,
+                loginUser: req.loginUser
+            }
+            const result = await getListUser(params)
             if (result.success) {
                 res.json(respondArraySuccess(result.data, result.total))
             } else {

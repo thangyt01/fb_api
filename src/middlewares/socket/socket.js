@@ -14,6 +14,7 @@ module.exports = (bks) => {
                     loginUser,
                     socketId: socket.id,
                 }
+                console.log('Client new subscribe', params)
                 BksService.joinRoom(params)
             })
 
@@ -30,11 +31,26 @@ module.exports = (bks) => {
              *****************************************/
             socket.on('server-new-post', (data) => {
                 const params = {
-                    data,
+                    ...data,
                     loginUser
                 }
+                console.log('server-new-post', params)
                 BksService.createPost(params)
             })
+
+
+            /*****************************************
+             *********** DEFINE CHAT EVENTS **********
+             *****************************************/
+            socket.on('server-new-chat', (data) => {
+                const params = {
+                    ...data,
+                    loginUser
+                }
+                console.log('server-new-chat', params)
+                BksService.createChat(params)
+            })
+
         } catch (error) {
             console.log(`socket bks error ${e.stack || JSON.stringify(e)}`)
         }

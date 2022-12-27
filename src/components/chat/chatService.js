@@ -72,11 +72,16 @@ export class ChatService {
                 data.reply_id = reply.id
             }
             removeRedundant(data)
-            await Chat.create(data)
+            const message = await Chat.create(data)
             return {
                 success: true,
                 code: HTTP_STATUS[1000].code,
-                message: HTTP_STATUS[1000].message
+                message: HTTP_STATUS[1000].message,
+                data: {
+                    groupChat: groupChat,
+                    members: groupChat.members,
+                    message
+                }
             }
         } catch (e) {
             log.info('[create] có lỗi', e)
@@ -337,8 +342,8 @@ export class ChatService {
                     group_chat_id: groupChat._id,
                     members: await Promise.all(groupChat.members.map(async item => {
                         const user = users[item.user_id]
-                        item.fullname = user.firstname + ' ' + user.lastname
-                        item.avatar_url = await getAvatarUrl(user.avatar_id)
+                        item._doc.fullname = user.firstname + ' ' + user.lastname
+                        item._doc.avatar_url = await getAvatarUrl(user.avatar_id)
                         return item
                     })),
                     messages: messages,
