@@ -40,34 +40,13 @@ export async function getListFriend(params) {
         }
         let idArr = []
         rows.map(i => i.user_id == loginUser.id ? idArr.push(i.other_user_id) : idArr.push(i.user_id))
-        let users = await models.User.findAll({
-            attributes: ['id', 'firstname', 'lastname', 'avatar_id'],
-            where: {
-                id: idArr
-            },
-            raw: true
-        })
-        const avatar_ids = []
-        for (let user of users) {
-            if (user.avatar_id) {
-                avatar_ids.push(user.avatar_id)
-            }
-        }
-        const avatar_urls = await getAvatarUrlByIds(avatar_ids)
-        let avatar_map = avatar_urls.reduce((obj, item) => {
-            obj[item._id] = item
-            return obj
-        }, {})
-        users = users.map(item => {
-            item.avatar_url = avatar_map[item.avatar_id]?.url || getAvatarDefault()
-            return item
-        })
+        const data = await getUser(idArr)
 
         return {
             success: true,
             code: HTTP_STATUS[1000].code,
             message: HTTP_STATUS[1000].message,
-            data: users,
+            data,
             total: count
         }
     } catch (e) {
@@ -78,6 +57,124 @@ export async function getListFriend(params) {
             message: e.stack
         }
     }
+}
+
+export async function findUser(params) {
+    try {
+        const { name, loginUser } = params
+        const { rows = [], count } = await models.User.findAndCountAll({
+            where: {
+                deleted_at: {
+                    [Op.eq]: null
+                }
+            },
+            order: [
+                ["updated_at", "DESC"]
+            ]
+        })
+        if (!rows.length) {
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message,
+                data: [],
+                total: count
+            }
+        }
+
+        let idArr = []
+        const userFilter = rows.filter(i => `${i.firstname} ${i.lastname}`.includes(name))
+
+        const blockUser = await getListBlockUser({ page: 0, limit: 9999, loginUser })
+        userFilter = userFilter.filter(i=>blockUser.data.find(user=>user.id !== i.id))
+        userFilter.map(i => idArr.push(i.user_id))
+        const data = await getUser(idArr)
+
+        return {
+            success: true,
+            code: HTTP_STATUS[1000].code,
+            message: HTTP_STATUS[1000].message,
+            data,
+            total: count
+        }
+    } catch (e) {
+        log.info('[get-list-friend] có lỗi', e)
+        return {
+            error: true,
+            data: [],
+            message: e.stack
+        }
+    }
+}
+
+export async function getListFriendRequest(params) {
+    try {
+        const { page, limit, loginUser } = params
+        const { rows = [], count } = await models.UserRelationship.findAndCountAll({
+            where: {
+                status: RELATIONSHIP_STATUS.PENDING,
+                other_user_id: loginUser.id
+            },
+            order: [
+                ["updated_at", "DESC"]
+            ],
+            offset: page * limit,
+            limit: limit,
+        })
+        if (!rows.length) {
+            return {
+                success: true,
+                code: HTTP_STATUS[1000].code,
+                message: HTTP_STATUS[1000].message,
+                data: [],
+                total: count
+            }
+        }
+        let idArr = []
+        rows.map(i => i.user_id == loginUser.id ? idArr.push(i.other_user_id) : idArr.push(i.user_id))
+        const data = await getUser(idArr)
+
+        return {
+            success: true,
+            code: HTTP_STATUS[1000].code,
+            message: HTTP_STATUS[1000].message,
+            data,
+            total: count
+        }
+    } catch (e) {
+        log.info('[get-list-friend-request] có lỗi', e)
+        return {
+            error: true,
+            data: [],
+            message: e.stack
+        }
+    }
+}
+
+async function getUser(userIdArr) {
+    let users = await models.User.findAll({
+        attributes: ['id', 'firstname', 'lastname', 'avatar_id'],
+        where: {
+            id: userIdArr
+        },
+        raw: true
+    })
+    const avatar_ids = []
+    for (let user of users) {
+        if (user.avatar_id) {
+            avatar_ids.push(user.avatar_id)
+        }
+    }
+    const avatar_urls = await getAvatarUrlByIds(avatar_ids)
+    let avatar_map = avatar_urls.reduce((obj, item) => {
+        obj[item._id] = item
+        return obj
+    }, {})
+    users = users.map(item => {
+        item.avatar_url = avatar_map[item.avatar_id]?.url || getAvatarDefault()
+        return item
+    })
+    return users
 }
 
 export async function getListBlockUser(params) {
