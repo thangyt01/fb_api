@@ -25,8 +25,8 @@ export class AuthValidator {
             email: Joi.string().email().required(),
             phone: Joi.string().regex(/^[0-9]{10}$/).optional(),
             address: Joi.string().optional(),
-            link_github: Joi.string().optional(),
-            link_twitter: Joi.string().optional(),
+            link_github: Joi.string().allow(null).allow(''),
+            link_twitter: Joi.string().allow(null).allow(''),
             avatar_id: Joi.number().integer().allow(null).optional(),
             gender: Joi.string().valid(['male', 'female', 'other']).allow(null).optional(),
             birthday: Joi.date().format('YYYY-MM-DD')

@@ -4,7 +4,7 @@ import _ from 'lodash'
 import * as randomToken from 'rand-token'
 import { ACCOUNT_STATUS, COOKIE_TOKEN_KEY, REFRESH_TOKEN_LENGTH, RELATIONSHIP_STATUS, RELATIONSHIP_TYPE, SECRET_ACCESS_TOKEN, SECRET_ACCESS_TOKEN_EXPIRE, SECRET_REFRESH_ACCESS_TOKEN_EXPIRE, VERIFY_TYPE } from './authConstant'
 import { Op } from 'sequelize'
-import { getRandomStringInt } from '../../helpers/utils/utils'
+import { getAvatarDefault, getRandomStringInt } from '../../helpers/utils/utils'
 import { getMemcached, setMemcached } from '../../middlewares/memcached/service'
 import { contentMail } from '../../helpers/message'
 import { HTTP_STATUS } from '../../helpers/code'
@@ -12,6 +12,7 @@ import PostComment from '../../../database/mongoDb/model/PostComment'
 import { Notification } from '../../../database/mongoDb/model/Notification'
 import Post from '../../../database/mongoDb/model/Post'
 import { getAvatarUrl } from '../user/userService'
+import { ElasticSearch } from '../../../database/elasticSearch'
 
 const jwt = require('jsonwebtoken')
 const models = require('../../../database/models')
@@ -23,6 +24,7 @@ const authConfig = _.get(config, 'auth', null)
 
 const Logger = require('../../libs/logger')
 const log = new Logger(__dirname)
+const index_name = 'users'
 
 export class AuthService {
     static async login(params) {
@@ -181,10 +183,28 @@ export class AuthService {
                 }
             }
             const hashPass = hashPassword(password)
-            models.User.create({
+            const rs = await models.User.create({
                 ...params,
                 password: hashPass,
                 created_at: new Date(),
+            })
+            const userLast = await models.User.findByPk(rs.id)
+            await ElasticSearch.insertOrUpdateDoc({
+                index_name,
+                id: userLast.id,
+                record: {
+                    id: userLast.id,
+                    username: userLast.username,
+                    firstname: userLast.firstname,
+                    lastname: userLast.lastname,
+                    email: userLast.email,
+                    phone: userLast.phone,
+                    address: userLast.address,
+                    link_github: userLast.link_github,
+                    link_twitter: userLast.link_twitter,
+                    avatar_url: getAvatarDefault(),
+                    avatar_id: userLast.avatar_id
+                }
             })
             return {
                 success: true,
@@ -464,7 +484,24 @@ export class AuthService {
                 await Promise.all([
                     updateInfoUserModel(Post, loginUser.id, set),
                     updateInfoUserModel(PostComment, loginUser.id, set),
-                    updateInfoUserNotificationModel(Notification, loginUser.id, set)
+                    updateInfoUserNotificationModel(Notification, loginUser.id, set),
+                    ElasticSearch.insertOrUpdateDoc({
+                        index_name,
+                        id: loginUser.id,
+                        record: {
+                            id: loginUser.id,
+                            username: user.username,
+                            firstname: user.firstname,
+                            lastname: user.lastname,
+                            email: user.email,
+                            phone: user.phone,
+                            address: user.address,
+                            link_github: user.link_github,
+                            link_twitter: user.link_twitter,
+                            avatar_url: loginUser.avatar_url,
+                            avatar_id: loginUser.avatar_id
+                        }
+                    })
                 ])
             }
 
@@ -504,7 +541,24 @@ export class AuthService {
             await Promise.all([
                 updateInfoUserModel(Post, loginUser.id, { avatar_url }),
                 updateInfoUserModel(PostComment, loginUser.id, { avatar_url }),
-                updateInfoUserNotificationModel(Notification, loginUser.id, { avatar_url })
+                updateInfoUserNotificationModel(Notification, loginUser.id, { avatar_url }),
+                ElasticSearch.insertOrUpdateDoc({
+                    index_name,
+                    id: loginUser.id,
+                    record: {
+                        id: loginUser.id,
+                        username: loginUser.username,
+                        firstname: loginUser.firstname,
+                        lastname: loginUser.lastname,
+                        email: loginUser.email,
+                        phone: loginUser.phone,
+                        address: loginUser.address,
+                        link_github: loginUser.link_github,
+                        link_twitter: loginUser.link_twitter,
+                        avatar_url,
+                        avatar_id: avatar._id
+                    }
+                })
             ])
             return {
                 success: true,

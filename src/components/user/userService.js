@@ -149,6 +149,13 @@ export async function getListBlockUser(params) {
 export async function getListUser(params) {
     try {
         const { page, limit, keyword, loginUser } = params
+        if (!keyword) {
+            return {
+                error: true,
+                code: HTTP_STATUS[1004].code,
+                message: HTTP_STATUS[1004].message,
+            }
+        }
         const resultEs = await ElasticSearch.search({
             index_name: 'users',
             page,

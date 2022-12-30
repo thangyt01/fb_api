@@ -58,11 +58,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         link_github: {
-            allowNull: false,
+            allowNull: true,
             type: DataTypes.STRING
         },
         link_twitter: {
-            allowNull: false,
+            allowNull: true,
             type: DataTypes.STRING
         },
         last_login_at: {

@@ -15,6 +15,7 @@ module.exports = (app) => {
     router.post('/firebase-token', authenAppToken, validate(ActionLogValidator.firebaseToken()), ActionLogController.updateFirebaseToken)
     router.post('/upload', authenticate, fileUpload.array('file', MAX_FILE), uploadFiles)
     router.get('/migrate/elastic-search', authenticate, ActionLogController.migrateUsersDbToElasticSearch)
+    router.get('/factory/create-user', authenticate, ActionLogController.factoryCreateUsers)
 
     app.use('/api/action', router)
 }
@@ -72,6 +73,26 @@ module.exports = (app) => {
  *   get:
  *     summary: Migrate bảng users sang elasticsearch
  *     tags: [Action Log]
+
+ *     responses:
+ *       "1000":
+ *         description: ok!
+ */
+
+/**
+ * @swagger
+ * /action/factory/create-user:
+ *   get:
+ *     summary: Tạo tự động user
+ *     tags: [Action Log]
+ *     parameters:
+ *       - in: query
+ *         name: quantity
+ *         schema:
+ *           type: string
+ *         description: quantity
+ *         example:
+ *           10
 
  *     responses:
  *       "1000":
