@@ -1,4 +1,5 @@
 import { migrateUsersFromDbToEs } from "../../../database/elasticSearch/migration";
+import { Factory } from "../../../database/models/factory";
 import { HTTP_STATUS } from "../../helpers/code";
 import { respondItemSuccess, respondWithError } from "../../helpers/messageResponse";
 import { ActionLogService } from "./actionLogService";
@@ -27,6 +28,20 @@ export class ActionLogController {
             const rs = await migrateUsersFromDbToEs()
             if (rs) {
                 res.json(respondItemSuccess('migrate done!!!'))
+            } else {
+                res.json(respondWithError())
+            }
+        } catch (error) {
+            res.json(respondWithError(HTTP_STATUS[1013].code, error.message, error))
+        }
+    }
+
+    static async factoryCreateUsers(req, res) {
+        try {
+            const quantity = req.query.quantity ? +req.query.quantity : 10
+            const rs = await Factory.createUsers(quantity)
+            if (rs) {
+                res.json(respondItemSuccess('factory done!!!'))
             } else {
                 res.json(respondWithError())
             }
