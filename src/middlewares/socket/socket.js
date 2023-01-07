@@ -16,6 +16,7 @@ module.exports = (bks) => {
                 }
                 console.log('Client new subscribe', params)
                 BksService.joinRoom(params)
+                console.log("bks", bks.adapter.rooms?.get('bks-room-1'))
             })
 
             socket.on('leave-room', () => {
@@ -24,6 +25,7 @@ module.exports = (bks) => {
                     socketId: socket.id,
                 }
                 BksService.leaveRoom(params)
+                console.log("bks", bks.adapter.rooms?.get('bks-room-1'))
             })
 
             /*****************************************
@@ -51,7 +53,15 @@ module.exports = (bks) => {
                 BksService.createChat(params)
             })
 
-        } catch (error) {
+            socket.on('disconnect', () => {
+                console.log("client disconnect socketId =", socket.id)
+            })
+
+            // disconnect event, remove all sid in all room joined
+            bks.on('disconnect', () => {
+                bks.adapter.remoteDisconnect(socket.id, true);
+            })
+        } catch (e) {
             console.log(`socket bks error ${e.stack || JSON.stringify(e)}`)
         }
     })

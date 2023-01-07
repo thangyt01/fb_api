@@ -182,14 +182,18 @@ export class PostService {
         try {
             const { page, limit, loginUser } = params
 
-            let posts = await Post
-                .find({
+            let [posts, count] = await Promise.all([
+                Post.find({
                     deleted_at: null
                 })
-                .sort({ created_at: -1 })
-                .limit(limit)
-                .skip(page * limit)
-                .exec()
+                    .sort({ created_at: -1 })
+                    .limit(limit)
+                    .skip(page * limit)
+                    .exec(),
+                Post.countDocuments({
+                    deleted_at: null
+                })
+            ])
             posts = await Promise.all(
                 posts.map(async (post) => {
                     post._doc.comments = await this.getCommentOfPost(post.id)
@@ -200,7 +204,8 @@ export class PostService {
                 success: true,
                 code: HTTP_STATUS[1000].code,
                 message: HTTP_STATUS[1000].message,
-                data: posts
+                data: posts,
+                total: count
             }
         } catch (e) {
             log.info('[gets] có lỗi', e)

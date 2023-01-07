@@ -1,5 +1,5 @@
 import { HTTP_STATUS } from '../../helpers/code'
-import { respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
+import { respondArraySuccess, respondItemSuccess, respondWithError } from '../../helpers/messageResponse'
 import { PostService } from './postService'
 
 export class PostController {
@@ -86,7 +86,7 @@ export class PostController {
             }
             const result = await PostService.gets(params)
             if (result.success) {
-                res.json(respondItemSuccess(result.data))
+                res.json(respondArraySuccess(result.data, result.total))
             } else {
                 res.json(respondWithError(result.code, result.message, result.data))
             }
