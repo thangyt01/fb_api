@@ -58,7 +58,12 @@ module.exports = () => {
     app.use(compression())
 
     // set cors blocked resources
-    app.use(cors())
+    app.use(cors({
+        origin: '*',
+        methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'],
+        exposedHeaders: ['Content-Length', 'Authorization', 'Accept-Language'],
+        credentials: true,
+    }))
     app.options('*', cors())
 
     // setup limits

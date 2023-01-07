@@ -75,7 +75,21 @@ module.exports = (app) => {
  *   get:
  *     summary: Danh sách bài đăng
  *     tags: [Post]
- *
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: string
+ *         description: limit
+ *         example:
+ *           10
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: string
+ *         description: page
+ *         example:
+ *           0
  *     responses:
  *       "1000":
  *         description: ok!
