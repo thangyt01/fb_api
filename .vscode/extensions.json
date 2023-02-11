@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "streetsidesoftware.code-spell-checker",
-    "EditorConfig.EditorConfig",
-    "christian-kohler.path-intellisense",
-    "mikestead.dotenv",
-    "Orta.vscode-jest"
-  ]
-}

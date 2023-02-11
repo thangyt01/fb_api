@@ -1,19 +1,13 @@
-FROM node:10
+FROM node:16
 
-# Create app directory
-WORKDIR /data/www/backend-social-network
+WORKDIR /app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+RUN npm i npm@latest -g
+
+COPY package.json .
+
 RUN npm install
-RUN npm i -g sequelize-cli
-# If you are building your code for production
-# RUN npm ci --only=production
 
 COPY . .
 
-EXPOSE 3000
-
-ENTRYPOINT ["npm", "start"]
+CMD ["node", "index.js"]
